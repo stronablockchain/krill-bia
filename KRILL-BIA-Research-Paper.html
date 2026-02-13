@@ -1,0 +1,3350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KRILL: Bio-Inspired Network Architecture for the Internet of Things</title>
+    <style>
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* ═══════ PAGE SETUP ═══════ */
+@page {
+    size: A4;
+    margin: 18mm 20mm 20mm 20mm;
+
+    @bottom-center {
+        content: counter(page);
+        font-family: 'Inter', sans-serif;
+        font-size: 8pt;
+        color: #94a3b8;
+    }
+}
+
+@media print {
+    body {
+        font-size: 9.5pt;
+        padding: 0;
+        max-width: none;
+    }
+
+    .print-btn { display: none !important; }
+    .toc-nav { display: none !important; }
+
+    /* Page-break rules — NO forced breaks, content flows naturally */
+    h1 { page-break-before: avoid; page-break-after: avoid; }
+    h2 { page-break-after: avoid; }
+    h3, h4 { page-break-after: avoid; }
+
+    /* CRITICAL: allow code and tables to break across pages */
+    pre {
+        page-break-inside: auto !important;
+        overflow: visible !important;
+    }
+    table {
+        page-break-inside: auto !important;
+    }
+    tr {
+        page-break-inside: avoid;
+    }
+    thead {
+        display: table-header-group;  /* repeat header on new page */
+    }
+
+    blockquote { page-break-inside: avoid; }
+
+    /* Avoid orphan headings */
+    h2, h3, h4 {
+        orphans: 3;
+        widows: 3;
+    }
+}
+
+/* ═══════ RESET ═══════ */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* ═══════ BODY ═══════ */
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    font-size: 10.5pt;
+    line-height: 1.6;
+    color: #1a1a2e;
+    background: #fff;
+    max-width: 210mm;
+    margin: 0 auto;
+    padding: 15mm 20mm;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ═══════ HEADINGS ═══════ */
+h1 {
+    font-size: 22pt;
+    font-weight: 700;
+    color: #0d1b3e;
+    margin: 0 0 0.2em 0;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    border-bottom: 3px solid #2563eb;
+    padding-bottom: 0.4em;
+}
+
+h2 {
+    font-size: 15pt;
+    font-weight: 600;
+    color: #1e3a5f;
+    margin: 1.8em 0 0.7em 0;
+    padding-bottom: 0.25em;
+    border-bottom: 1.5px solid #e2e8f0;
+    letter-spacing: -0.01em;
+}
+
+h3 {
+    font-size: 11.5pt;
+    font-weight: 600;
+    color: #334155;
+    margin: 1.3em 0 0.4em 0;
+}
+
+h4 {
+    font-size: 10.5pt;
+    font-weight: 600;
+    color: #475569;
+    margin: 1em 0 0.3em 0;
+}
+
+/* First h2 is subtitle — no page break, different style */
+h2:first-of-type {
+    font-size: 11pt;
+    font-weight: 400;
+    color: #475569;
+    border-bottom: none;
+    margin-top: 0.2em;
+}
+
+/* ═══════ PARAGRAPHS ═══════ */
+p {
+    margin: 0.5em 0;
+    text-align: justify;
+    hyphens: auto;
+}
+
+strong {
+    font-weight: 600;
+    color: #0f172a;
+}
+
+em {
+    font-style: italic;
+    color: #374151;
+}
+
+/* ═══════ BLOCKQUOTES ═══════ */
+blockquote {
+    margin: 0.8em 0;
+    padding: 0.6em 1em;
+    border-left: 4px solid #2563eb;
+    background: #f8fafc;
+    color: #334155;
+    font-style: italic;
+    border-radius: 0 4px 4px 0;
+}
+
+blockquote p { margin: 0.2em 0; }
+
+/* ═══════ INLINE CODE ═══════ */
+code {
+    font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+    font-size: 0.88em;
+    background: #f1f5f9;
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+    color: #be185d;
+}
+
+/* ═══════ CODE BLOCKS — CRITICAL FOR PDF ═══════ */
+pre {
+    margin: 0.8em 0;
+    padding: 0.8em 1em;
+    background: #0f172a;
+    color: #e2e8f0;
+    border-radius: 6px;
+    font-size: 7.8pt;
+    line-height: 1.45;
+    border: 1px solid #1e293b;
+
+    /* KEY FIX: wrap long lines instead of horizontal scroll */
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+
+    /* Allow breaking across pages */
+    page-break-inside: auto;
+    overflow: visible;
+}
+
+pre code {
+    background: none;
+    padding: 0;
+    color: #e2e8f0;
+    font-size: 7.8pt;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/* ═══════ TABLES ═══════ */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.8em 0;
+    font-size: 8.8pt;
+    line-height: 1.35;
+    page-break-inside: auto;
+}
+
+thead {
+    background: #1e3a5f;
+    color: #fff;
+    display: table-header-group;
+}
+
+th {
+    padding: 0.45em 0.6em;
+    text-align: left;
+    font-weight: 600;
+    font-size: 8.2pt;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+td {
+    padding: 0.4em 0.6em;
+    border-bottom: 1px solid #e2e8f0;
+    vertical-align: top;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 0;  /* force word-wrap in table cells */
+}
+
+/* Make table cells wrap long content */
+table td:first-child {
+    white-space: nowrap;
+}
+table td:last-child {
+    white-space: normal;
+    word-break: break-word;
+}
+
+tbody tr:nth-child(even) { background: #f8fafc; }
+
+/* ═══════ LISTS ═══════ */
+ul, ol {
+    margin: 0.4em 0 0.4em 1.4em;
+}
+
+li {
+    margin: 0.2em 0;
+}
+
+li > ul, li > ol {
+    margin: 0.1em 0 0.1em 1em;
+}
+
+/* ═══════ HORIZONTAL RULES ═══════ */
+hr {
+    border: none;
+    border-top: 1px solid #cbd5e1;
+    margin: 1.5em 0;
+}
+
+/* ═══════ LINKS ═══════ */
+a {
+    color: #2563eb;
+    text-decoration: none;
+}
+a:hover { text-decoration: underline; }
+
+/* ═══════ TITLE AREA ═══════ */
+body > h1:first-child {
+    text-align: center;
+    font-size: 24pt;
+    margin-top: 0.5em;
+}
+
+body > h1:first-child + h2 {
+    text-align: center;
+    font-size: 11pt;
+    color: #475569;
+    font-weight: 400;
+    border: none;
+    margin-bottom: 0.8em;
+}
+
+/* ═══════ EXECUTIVE SUMMARY BOX ═══════ */
+.executive-summary {
+    background: #eff6ff;
+    border: 2px solid #2563eb;
+    border-radius: 8px;
+    padding: 1.2em 1.5em;
+    margin: 1.5em 0;
+    page-break-inside: avoid;
+}
+
+.executive-summary h2 {
+    color: #1d4ed8;
+    border-bottom: none;
+    margin: 0 0 0.5em 0;
+    font-size: 13pt;
+    page-break-before: avoid;
+}
+
+/* ═══════ WALLET / SUPPORT BOX ═══════ */
+.support-box {
+    background: #f0fdf4;
+    border: 1.5px solid #22c55e;
+    border-radius: 8px;
+    padding: 1em 1.3em;
+    margin: 1.5em 0;
+    page-break-inside: avoid;
+}
+
+/* ═══════ FOOTER ═══════ */
+.doc-footer {
+    margin-top: 2em;
+    padding-top: 0.8em;
+    border-top: 1px solid #cbd5e1;
+    font-size: 8.5pt;
+    color: #64748b;
+    text-align: center;
+}
+
+/* ═══════ PRINT BUTTON ═══════ */
+.print-btn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+    z-index: 1000;
+    transition: all 0.2s;
+}
+
+.print-btn:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+}
+
+/* ═══════ RESPONSIVE: wider screens ═══════ */
+@media screen and (min-width: 900px) {
+    body {
+        max-width: 800px;
+        padding: 30px 40px;
+    }
+}
+
+    </style>
+</head>
+<body>
+    <button class="print-btn" onclick="window.print()">
+        Print / Save as PDF
+    </button>
+
+    <h1 id="krill-bio-inspired-network-architecture-for-the-internet-of-things">KRILL: Bio-Inspired Network Architecture for the Internet of Things</h1>
+
+<h2 id="a-stigmergic-immunological-and-metabolic-framework-for-post-blockchain-distributed-consensus">A Stigmergic, Immunological, and Metabolic Framework for Post-Blockchain Distributed Consensus</h2>
+
+<p><strong>Version 1.0 — February 2026</strong></p>
+
+<p><strong>Authors:</strong> KRILL Research Group</p>
+
+<hr />
+
+<blockquote>
+  <p><em>"The most profound technologies are those that disappear. They weave themselves into the fabric of everyday life until they are indistinguishable from it."</em>
+  — Mark Weiser, "The Computer for the 21st Century" (1991)</p>
+</blockquote>
+
+<hr />
+
+<div class="executive-summary">
+<h2>What is KRILL? (Plain-Language Summary)</h2>
+
+<p><strong>The problem:</strong> Billions of IoT devices (sensors, smart home gadgets, industrial monitors) need to share data and trust each other — but blockchain, the go-to technology for "trustless" systems, is too heavy, too slow, and too power-hungry for tiny battery-powered devices with kilobytes of memory.</p>
+
+<p><strong>Our approach:</strong> Instead of copying financial technology (blockchain), we copied <em>biology</em>. Living organisms solved the same problem billions of years ago — trillions of cells coordinate without a central brain, detect intruders (immune system), forget irrelevant information (metabolism), and self-organize into structures (morphogenesis).</p>
+
+<p><strong>KRILL is a protocol with 9 biological mechanisms adapted for IoT:</strong></p>
+<ol>
+<li><strong>Stigmergic Consensus</strong> — devices leave digital "pheromone trails" (like ants) to agree on sensor readings. No voting rounds needed.</li>
+<li><strong>Immune System</strong> — five layers detect anomalies, attackers, and malfunctioning devices. Works like your body's innate + adaptive immunity.</li>
+<li><strong>Metabolic State</strong> — old data loses energy and dies (apoptosis). No infinite ledger growth.</li>
+<li><strong>Entropic Data Valuation</strong> — the network automatically values data by its information content, not by who sent it.</li>
+<li><strong>Quorum Sensing</strong> — devices collectively switch between solo-mode and group-mode based on neighbor density (like bacteria deciding to form a biofilm).</li>
+<li><strong>Horizontal Gene Transfer</strong> — firmware updates spread device-to-device like genes between bacteria. No central update server needed.</li>
+<li><strong>Morphogenetic Topology</strong> — the network self-organizes its shape using reaction-diffusion patterns (like a developing embryo).</li>
+<li><strong>Thymic Tolerance</strong> — the system learns to distinguish "self" from "other" to prevent false alarms.</li>
+<li><strong>Immunological Memory</strong> — once the network detects a threat, it remembers and can respond faster next time (like vaccination).</li>
+</ol>
+
+<p><strong>Result:</strong> An IoT network that uses ~1000x less energy than blockchain, works on $2 microcontrollers, tolerates intermittent connectivity, automatically heals, and doesn't need any central server.</p>
+
+<p><strong>Status:</strong> This is a research paper describing the theory and mathematics. A companion <em>Engineering Specification</em> document provides byte-level implementation details. No running code exists yet — this is an open invitation to build it.</p>
+</div>
+
+
+
+<h2 id="abstract">Abstract</h2>
+
+<p>We present a fundamentally new architectural paradigm for Internet of Things (IoT) distributed systems that departs from blockchain's ledger-centric model in favor of biologically-inspired mechanisms. The proposed framework — designated <strong>KRILL Bio-Inspired Architecture (KRILL-BIA)</strong> — introduces nine interlocking subsystems drawn from evolutionary biology, immunology, swarm intelligence, and developmental biology: (1) <strong>Stigmergic Consensus</strong>, replacing Byzantine Fault Tolerance with pheromone-field coordination grounded in physical-world constraints; (2) a <strong>Pentastratic Immune System</strong> providing multi-layered anomaly detection with autoimmune tolerance; (3) <strong>Metabolic State</strong> with thermodynamically-inspired information decay and programmed apoptosis; (4) <strong>Entropic Data Valuation</strong> using conditional mutual information for autonomous resource allocation; (5) <strong>Quorum Sensing</strong> for leaderless mode selection; (6) <strong>Horizontal Gene Transfer</strong> for decentralized firmware evolution; (7) <strong>Morphogenetic Topology</strong> via reaction-diffusion dynamics; (8) <strong>Thymic Tolerance Training</strong> for false-positive suppression; and (9) <strong>Immunological Memory</strong> with stigmergic vaccine propagation.</p>
+
+<p>We provide mathematical formalizations, energy complexity analysis, honest risk assessment, and comparison with existing distributed systems literature. Three of the proposed mechanisms — physical-world consensus grounding, horizontal gene transfer for firmware, and reaction-diffusion network topology — represent genuinely novel contributions with no direct precedent in published literature. The remaining six combine existing concepts in an unprecedented integrated framework that transforms isolated techniques into a coherent bio-mimetic system.</p>
+
+<p><strong>Keywords:</strong> Internet of Things, Stigmergy, Artificial Immune Systems, Swarm Intelligence, Distributed Consensus, Reaction-Diffusion Systems, Information Theory, Bio-Inspired Computing, Post-Blockchain Architecture</p>
+
+<hr />
+
+<h2 id="table-of-contents">Table of Contents</h2>
+
+<ol>
+<li><a href="#1-introduction-and-motivation">Introduction and Motivation</a></li>
+<li><a href="#2-foundational-thesis-why-blockchain-is-the-wrong-metaphor">Foundational Thesis: Why Blockchain is the Wrong Metaphor</a></li>
+<li><a href="#3-stigmergic-consensus-the-end-of-byzantine-agreement">Stigmergic Consensus: The End of Byzantine Agreement</a></li>
+<li><a href="#4-the-pentastratic-immune-system">The Pentastratic Immune System</a></li>
+<li><a href="#5-metabolic-state-information-thermodynamics">Metabolic State: Information Thermodynamics</a></li>
+<li><a href="#6-entropic-data-valuation">Entropic Data Valuation</a></li>
+<li><a href="#7-quorum-sensing-leaderless-collective-decision-making">Quorum Sensing: Leaderless Collective Decision-Making</a></li>
+<li><a href="#8-horizontal-gene-transfer-firmware-without-a-center">Horizontal Gene Transfer: Firmware Without a Center</a></li>
+<li><a href="#9-morphogenetic-topology-self-organizing-network-structure">Morphogenetic Topology: Self-Organizing Network Structure</a></li>
+<li><a href="#10-mathematical-framework-and-convergence-properties">Mathematical Framework and Convergence Properties</a></li>
+<li><a href="#11-energy-complexity-analysis">Energy Complexity Analysis</a></li>
+<li><a href="#12-risk-analysis-and-open-problems">Risk Analysis and Open Problems</a></li>
+<li><a href="#13-integration-with-the-krill-blockchain-layer">Integration with the KRILL Blockchain Layer</a></li>
+<li><a href="#14-privacy-implications-of-bio-inspired-mechanisms">Privacy Implications of Bio-Inspired Mechanisms</a></li>
+<li><a href="#15-bootstrapping-and-initial-network-formation">Bootstrapping and Initial Network Formation</a></li>
+<li><a href="#16-governance-of-bio-inspired-parameters">Governance of Bio-Inspired Parameters</a></li>
+<li><a href="#17-physical-unclonable-function-puf-identity-formal-treatment">Physical Unclonable Function (PUF) Identity: Formal Treatment</a></li>
+<li><a href="#18-computational-overhead-analysis-on-constrained-hardware">Computational Overhead Analysis on Constrained Hardware</a></li>
+<li><a href="#19-novelty-assessment-and-literature-positioning">Novelty Assessment and Literature Positioning</a></li>
+<li><a href="#20-conclusion-and-research-agenda">Conclusion and Research Agenda</a></li>
+<li><a href="#21-references">References</a></li>
+<li><a href="#22-appendices">Appendices</a></li>
+</ol>
+
+<hr />
+
+<h2 id="1-introduction-and-motivation">1. Introduction and Motivation</h2>
+
+<h3 id="11-the-scale-of-the-problem">1.1 The Scale of the Problem</h3>
+
+<p>The Internet of Things (IoT) is projected to encompass over 30 billion connected devices by 2030 (Statista, 2024), generating an estimated 80 zettabytes of data annually (IDC, 2023). These devices span a hardware spectrum from sub-dollar microcontrollers with 32KB of RAM to autonomous vehicles with multi-core processors. They operate under constraints fundamentally unlike those of traditional computing nodes: intermittent connectivity, energy harvesting, physical exposure to adversarial environments, and deployment lifetimes measured in decades.</p>
+
+<p>Despite this scale, the dominant paradigm for trustless coordination among distributed agents — blockchain — was designed for an entirely different domain. Bitcoin (Nakamoto, 2008) and its successors model the problem of <strong>financial consensus</strong>: how do parties who don't trust each other agree on account balances? This is a legitimate and important problem, but it is not the IoT problem.</p>
+
+<h3 id="12-the-impedance-mismatch">1.2 The Impedance Mismatch</h3>
+
+<p>The IoT problem is not "Who has how much money?" but rather "What is the physical state of the world, and can we trust the entities reporting it?" This distinction has profound architectural consequences:</p>
+
+<table>
+<thead>
+<tr>
+  <th>Dimension</th>
+  <th>Financial Consensus (Blockchain)</th>
+  <th>Physical Consensus (IoT)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><strong>Nature of truth</strong></td>
+  <td>Social construct (balances are agreed upon)</td>
+  <td>Physical reality (temperature exists independently of measurement)</td>
+</tr>
+<tr>
+  <td><strong>Verification</strong></td>
+  <td>Computational (validate signature + state transition)</td>
+  <td>Physical (cross-reference with laws of physics)</td>
+</tr>
+<tr>
+  <td><strong>Cost of lying</strong></td>
+  <td>Economic (stake slashing)</td>
+  <td>Physical + Economic (must defeat physics AND economics)</td>
+</tr>
+<tr>
+  <td><strong>State growth</strong></td>
+  <td>Monotonic (ledger only appends)</td>
+  <td>Cyclical (old measurements lose relevance)</td>
+</tr>
+<tr>
+  <td><strong>Participant resources</strong></td>
+  <td>Abundant (servers, bandwidth)</td>
+  <td>Scarce (microcontrollers, batteries)</td>
+</tr>
+<tr>
+  <td><strong>Communication</strong></td>
+  <td>Always-on, low-latency</td>
+  <td>Intermittent, high-latency, NAT'd</td>
+</tr>
+<tr>
+  <td><strong>Consensus overhead</strong></td>
+  <td>Acceptable (tens of validators)</td>
+  <td>Prohibitive (billions of participants)</td>
+</tr>
+</tbody>
+</table>
+
+<p>This impedance mismatch is not a matter of optimization — it is categorical. Blockchain is the wrong <em>metaphor</em> for IoT, not merely the wrong <em>implementation</em>.</p>
+
+<h3 id="13-the-biological-insight">1.3 The Biological Insight</h3>
+
+<p>We observe that biology solved an isomorphic problem 3.8 billion years ago. A multicellular organism is a distributed system of ~37 trillion cells (Bianconi et al., 2013) that must:</p>
+
+<ul>
+<li>Coordinate behavior without central control</li>
+<li>Detect and neutralize malicious agents (pathogens) among trusted agents (own cells)</li>
+<li>Manage state (cell differentiation, protein expression) under strict energy constraints</li>
+<li>Self-organize topology (morphogenesis) from simple local rules</li>
+<li>Evolve and adapt to novel threats without redesigning the whole system</li>
+<li>Handle component failure gracefully (cell death → regeneration)</li>
+</ul>
+
+<p>Biology's solutions are not merely "good enough" — they are, in many cases, information-theoretically optimal under energy constraints (Laughlin, 2001; Bialek, 2012). This paper argues that these solutions can be formalized, adapted, and applied to IoT distributed systems, yielding a framework that is fundamentally superior to blockchain for physical-world coordination.</p>
+
+<h3 id="14-scope-and-claims">1.4 Scope and Claims</h3>
+
+<p>This paper makes the following contributions:</p>
+
+<ol>
+<li><strong>Formal definition of stigmergic consensus</strong> with physical-world grounding — a mechanism that eliminates the need for Byzantine agreement for the majority of IoT interactions involving continuous physical quantities (Section 3). We estimate this covers &gt;90% of IoT sensor traffic based on the prevalence of continuous measurements (temperature, humidity, pressure, acceleration) versus discrete events (door open/close, button press); the exact fraction depends on deployment composition.</li>
+<li><strong>A five-layer artificial immune system</strong> that goes beyond existing AIS literature (Forrest et al., 1994; de Castro &amp; Timmis, 2002) by incorporating autoimmune tolerance training (Section 4)</li>
+<li><strong>Metabolic state management</strong> with thermodynamically-motivated information decay and programmed apoptosis — a concept with no direct precedent in distributed systems (Section 5)</li>
+<li><strong>Entropic data valuation</strong> using conditional mutual information for autonomous incentive alignment (Section 6)</li>
+<li><strong>Quorum sensing</strong> adapted from bacterial signaling for leaderless mode selection (Section 7)</li>
+<li><strong>Horizontal gene transfer</strong> for decentralized firmware propagation — unprecedented in distributed systems literature (Section 8)</li>
+<li><strong>Morphogenetic topology</strong> using Turing's reaction-diffusion equations for self-organizing network structure — unprecedented in network architecture (Section 9)</li>
+<li><strong>Energy complexity analysis</strong> demonstrating 10³-10⁷× improvement over BFT consensus at IoT scale (Section 11)</li>
+<li><strong>Honest risk assessment</strong> identifying five fundamental limitations and five open research problems (Section 12)</li>
+</ol>
+
+<p>We explicitly note what is genuinely novel, what is adaptation of existing work, and what remains unproven.</p>
+
+<hr />
+
+<h2 id="2-foundational-thesis-why-blockchain-is-the-wrong-metaphor">2. Foundational Thesis: Why Blockchain is the Wrong Metaphor</h2>
+
+<h3 id="21-the-ontological-argument">2.1 The Ontological Argument</h3>
+
+<p>Blockchain's conceptual foundation is a <strong>ledger</strong> — a record of agreements between parties. In a ledger, truth is constituted by consensus: the balance in your account is whatever the majority of validators agree it is. There is no external reality against which to verify the claim "Alice has 10 ETH." The claim <em>is</em> the consensus.</p>
+
+<p>This ontology is appropriate for finance. It is inappropriate for physics.</p>
+
+<p>When a temperature sensor reports 23°C, there <em>is</em> an external reality: the actual temperature of the physical medium. Two honest sensors in the same location, at the same time, measuring the same physical quantity, will agree — not because they reach consensus, but because they measure the same reality. Their agreement is a consequence of physics, not of protocol.</p>
+
+<p><strong>Definition 2.1 (Physical Ground Truth).</strong> A measurement domain D possesses physical ground truth if and only if there exists an objective physical quantity Q(x, t) at position x and time t such that any correctly functioning sensor s_i at position x_i and time t_i produces a reading q_i satisfying:</p>
+
+<pre><code>|q_i - Q(x_i, t_i)| ≤ σ_i
+</code></pre>
+
+<p>where σ_i is the manufacturer-specified measurement uncertainty of sensor s_i.</p>
+
+<p><strong>Observation 2.1.</strong> IoT sensor data overwhelmingly possesses physical ground truth. Temperature, humidity, pressure, acceleration, voltage, light intensity, chemical concentration — these are objective physical quantities. In contrast, financial balances, smart contract states, and token ownership possess <em>no</em> physical ground truth; they exist only as social agreements.</p>
+
+<h3 id="22-the-complexity-argument">2.2 The Complexity Argument</h3>
+
+<p>Byzantine Fault Tolerance (BFT), in its classical formulation (Lamport, Shostak &amp; Pease, 1982), requires O(n²) messages per consensus round for n validators. Practical BFT variants (PBFT: Castro &amp; Liskov, 1999; HotStuff: Yin et al., 2019) reduce this to O(n) messages per round with a leader-based protocol, but still require all validators to participate in every round.</p>
+
+<p>For a network of N = 10⁹ IoT devices, even with sharding into groups of k = 100 validators, the total communication cost per consensus round is:</p>
+
+<pre><code>C_BFT = (N/k) × O(k) = O(N) messages globally
+</code></pre>
+
+<p>At one consensus round per second, this is 10⁹ messages per second — <strong>the equivalent of the entire global internet traffic devoted to consensus alone</strong> (Cisco, 2023: global internet traffic ≈ 5 × 10⁹ packets/second).</p>
+
+<p>This is not merely expensive. It is physically impossible.</p>
+
+<h3 id="23-the-thermodynamic-argument">2.3 The Thermodynamic Argument</h3>
+
+<p>Blockchain maintains state indefinitely. The Ethereum state trie has grown to over 400 GB (Etherscan, 2025) and increases monotonically. This violates a fundamental principle of information physics:</p>
+
+<p><strong>Landauer's Principle</strong> (Landauer, 1961): Maintaining a bit of information in a non-equilibrium state requires a minimum energy expenditure of kT ln 2 per unit time, where k is Boltzmann's constant and T is temperature.</p>
+
+<p>A system that accumulates state without bound requires unbounded energy to maintain that state. Blockchain circumvents this by distributing the maintenance cost across an ever-growing set of full nodes — but the cost exists and grows monotonically.</p>
+
+<p>In biological systems, information maintenance is tightly coupled to energy availability. Cells that cannot maintain their internal state undergo <strong>apoptosis</strong> (programmed cell death). Information that is no longer referenced degrades naturally. Memory consolidation compresses detailed short-term memories into schematic long-term representations (McClelland, McNaughton &amp; O'Reilly, 1995).</p>
+
+<p><strong>Thesis 2.1.</strong> A distributed system for IoT should model state as a thermodynamic quantity — subject to decay, requiring energy to maintain, and undergoing natural compression over time. This is not a limitation but a feature: old sensor readings <em>genuinely are</em> less valuable than new ones.</p>
+
+<h3 id="24-the-proposed-alternative-network-as-organism">2.4 The Proposed Alternative: Network as Organism</h3>
+
+<p>We propose treating the IoT network not as a ledger but as a <strong>multicellular organism</strong>:</p>
+
+<table>
+<thead>
+<tr>
+  <th>Blockchain Concept</th>
+  <th>Biological Equivalent</th>
+  <th>KRILL-BIA Implementation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Consensus round</td>
+  <td>— (unnecessary for physics)</td>
+  <td>Stigmergic pheromone field</td>
+</tr>
+<tr>
+  <td>Reputation score</td>
+  <td>— (too simplistic)</td>
+  <td>Pentastratic immune system</td>
+</tr>
+<tr>
+  <td>State storage</td>
+  <td>DNA, epigenetics, memory</td>
+  <td>Metabolic state with half-life</td>
+</tr>
+<tr>
+  <td>Transaction fee</td>
+  <td>— (wrong incentive)</td>
+  <td>Entropic data valuation</td>
+</tr>
+<tr>
+  <td>Leader election</td>
+  <td>— (centralization risk)</td>
+  <td>Quorum sensing</td>
+</tr>
+<tr>
+  <td>Firmware update (centralized)</td>
+  <td>Horizontal gene transfer</td>
+  <td>Decentralized module propagation</td>
+</tr>
+<tr>
+  <td>Network topology (designed)</td>
+  <td>Morphogenesis</td>
+  <td>Reaction-diffusion self-organization</td>
+</tr>
+<tr>
+  <td>Slashing (punishment)</td>
+  <td>Apoptosis (self-destruction)</td>
+  <td>Programmed state/device death</td>
+</tr>
+<tr>
+  <td>Block confirmation</td>
+  <td>Immune clearance</td>
+  <td>Physical consistency verification</td>
+</tr>
+</tbody>
+</table>
+
+<p>This is not metaphor for its own sake. Each biological mechanism maps to a specific, formalizable computational primitive that solves a specific problem more efficiently than its blockchain counterpart.</p>
+
+<hr />
+
+<h2 id="3-stigmergic-consensus-the-end-of-byzantine-agreement">3. Stigmergic Consensus: The End of Byzantine Agreement</h2>
+
+<h3 id="31-definition-and-biological-origin">3.1 Definition and Biological Origin</h3>
+
+<p><strong>Stigmergy</strong> (from Greek στίγμα "mark" + ἔργον "work") was first described by Grassé (1959) in the context of termite mound construction. Termites do not communicate directly about construction plans. Instead, each termite deposits material (pheromone-laced mud) in the environment. Other termites respond to the deposited material, creating complex structures through indirect coordination.</p>
+
+<p><strong>Definition 3.1 (Stigmergic Coordination).</strong> A set of agents {a₁, ..., aₙ} achieves stigmergic coordination over a shared environment E if:</p>
+
+<ol>
+<li>Each agent a_i modifies E locally: E ← E + δ_i</li>
+<li>Each agent reads E locally: a_i observes E(x_i, t)</li>
+<li>Agent behavior is a function of local environment state: action(a_i) = f(E(x_i, t))</li>
+<li>Global coordination emerges without direct inter-agent communication</li>
+</ol>
+
+<p>The key insight is that the <em>environment itself</em> serves as the communication medium. In IoT, the physical world plays this role.</p>
+
+<h3 id="32-the-physical-consistency-constraint">3.2 The Physical Consistency Constraint</h3>
+
+<p><strong>Theorem 3.1 (Physical Consistency Bound).</strong> For two sensors s_i and s_j measuring the same physical quantity Q, with positions x_i and x_j, measurement times t_i and t_j, and manufacturer uncertainties σ_i and σ_j, the maximum physically permissible difference between their readings is:</p>
+
+<pre><code>|q_i - q_j| ≤ ε(d(x_i, x_j), |t_i - t_j|) + σ_i + σ_j
+</code></pre>
+
+<p>where:</p>
+
+<ul>
+<li><strong>d(x_i, x_j)</strong> is the Euclidean distance between sensors</li>
+<li><strong>ε(d, Δt)</strong> is the maximum physically possible difference, bounded by:
+<ul>
+<li>Spatial gradient: ε_spatial = ∇Q_max · d (maximum gradient of Q times distance)</li>
+<li>Temporal change: ε_temporal = (∂Q/∂t)_max · Δt (maximum rate of change times time difference)</li>
+<li>Combined: ε(d, Δt) = ε_spatial + ε_temporal</li>
+</ul></li>
+<li><strong>σ_i, σ_j</strong> are measurement uncertainties (from manufacturer datasheets)</li>
+</ul>
+
+<p><strong>Proof sketch.</strong> Q is a physical field governed by conservation laws. Its spatial gradient is bounded by the maximum energy flux in the medium (e.g., for temperature: thermal conductivity limits how fast gradients can develop). Its temporal derivative is bounded by the maximum energy input/output rate. These bounds are obtainable from physical constants and environmental parameters. □</p>
+
+<p><strong>Corollary 3.1.</strong> If the physical consistency bound is satisfied, the readings are consistent with physical reality. No consensus protocol is needed to verify this — the laws of physics guarantee it.</p>
+
+<p><strong>Corollary 3.2.</strong> If the physical consistency bound is violated, at least one sensor is either (a) malfunctioning, (b) compromised, or (c) measuring a genuine anomaly (e.g., a fire). This is the ONLY case where further verification is required.</p>
+
+<h3 id="33-the-pheromone-field">3.3 The Pheromone Field</h3>
+
+<p>We define a <strong>pheromone field</strong> P(x, t) over the physical deployment space:</p>
+
+<p><strong>Definition 3.2 (Pheromone Field).</strong> Each device i at position x_i, at time t, with immunological weight w_i (see Section 4), deposits a pheromone trace:</p>
+
+<pre><code>P_i(x, t) = w_i · δ(x - x_i) · e^{-λ(t - t_i)}
+</code></pre>
+
+<p>where:</p>
+
+<ul>
+<li>w_i ∈ [0, 1] is the immunological health weight of device i</li>
+<li>δ(·) is the Dirac delta function (localized at the device position)</li>
+<li>λ &gt; 0 is the pheromone decay rate (biological half-life: T½ = ln(2)/λ)</li>
+<li>t_i is the time of the last trace deposit</li>
+</ul>
+
+<p>The <strong>global pheromone field</strong> is the superposition:</p>
+
+<pre><code>P(x, t) = Σᵢ P_i(x, t) = Σᵢ w_i · δ(x - x_i) · e^{-λ(t - t_i)}
+</code></pre>
+
+<p>In practice, P is implemented as entries in a local Directed Acyclic Graph (DAG). A device does not "send a transaction to the network." It deposits a trace in the local DAG. Neighboring nodes read traces and add their own. Traces naturally decay (are garbage-collected after their half-life elapses).</p>
+
+<h3 id="34-the-stigmergic-protocol">3.4 The Stigmergic Protocol</h3>
+
+<pre><code>NORMAL OPERATION (majority of interactions — for continuous physical quantities):
+  1. Device i measures physical quantity: q_i = sense()
+  2. Device deposits trace in local DAG: DAG.append(q_i, sig_i, t_i)
+  3. Neighboring devices read trace
+  4. Physical consistency check:
+     FOR each neighbor j:
+       IF |q_i - q_j| ≤ ε(d_ij, Δt_ij) + σ_i + σ_j:
+         PASS (physically consistent — no action needed)
+       ELSE:
+         TRIGGER immune response (Section 4)
+  5. Trace decays naturally: after T½, trace weight → 0.5 · original
+
+COST: O(k) where k = number of neighbors (typically 5-20)
+GLOBAL COMMUNICATION: ZERO
+CONSENSUS ROUNDS: ZERO
+</code></pre>
+
+<h3 id="35-comparison-with-byzantine-agreement">3.5 Comparison with Byzantine Agreement</h3>
+
+<table>
+<thead>
+<tr>
+  <th>Property</th>
+  <th>Classical BFT (e.g., HotStuff)</th>
+  <th>Stigmergic Consensus</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Messages per round</td>
+  <td>O(n) per shard</td>
+  <td>O(k) per device, k &lt;&lt; n</td>
+</tr>
+<tr>
+  <td>Global state</td>
+  <td>Required (all validators agree)</td>
+  <td>Not required (local fields)</td>
+</tr>
+<tr>
+  <td>Assumption</td>
+  <td>&gt;2/3 honest validators</td>
+  <td>&gt;2/3 honest sensors + physical reality exists</td>
+</tr>
+<tr>
+  <td>Verification</td>
+  <td>Computational (signature checking)</td>
+  <td>Physical (consistency with laws of physics)</td>
+</tr>
+<tr>
+  <td>Cost at n = 10⁹</td>
+  <td>Physically impossible</td>
+  <td>O(k · 10⁹) = O(10¹⁰) local operations (feasible)</td>
+</tr>
+<tr>
+  <td>Handles physical anomalies</td>
+  <td>Treats anomaly as disagreement</td>
+  <td>Treats anomaly as immune event</td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="36-attack-analysis-pheromone-poisoning">3.6 Attack Analysis: Pheromone Poisoning</h3>
+
+<p><strong>Attack vector:</strong> An adversary floods the local DAG with false traces to corrupt the pheromone field.</p>
+
+<p><strong>Defense (three layers):</strong></p>
+
+<ol>
+<li><p><strong>Immunological weight filtering.</strong> Traces from unknown or low-health devices have w_i ≈ 0, contributing negligibly to the field. An attacker must first build immunological credibility (Section 4.4: Thymic Tolerance Training requires 7-30 days).</p></li>
+<li><p><strong>Physical consistency rejection.</strong> False traces that violate the physical consistency bound (Theorem 3.1) are automatically detected and rejected. The attacker must produce readings that are physically plausible — i.e., consistent with actual physical conditions. This requires the attacker to either (a) know the actual physical state (negating the purpose of lying) or (b) place physical sensors near the target (incurring real-world cost).</p></li>
+<li><p><strong>PUF-bound identity.</strong> Device identity is cryptographically bound to a Physical Unclonable Function (PUF), typically derived from SRAM power-on patterns (Guajardo et al., 2007). PUF responses cannot be cloned or predicted, making Sybil attacks require physical fabrication of hardware.</p></li>
+</ol>
+
+<p><strong>Cost-of-attack analysis:</strong> To poison a pheromone field, the attacker must:</p>
+
+<ul>
+<li>Deploy physical hardware in physical proximity to the target ($$$ + logistics)</li>
+<li>Maintain hardware through thymic tolerance period (7-30 days)</li>
+<li>Produce physically consistent readings (requires knowing or measuring actual conditions)</li>
+<li>Sustain the attack continuously (traces decay; attack effect is temporary)</li>
+</ul>
+
+<p>This attack profile is fundamentally more expensive than network-based attacks against BFT systems, where the attacker needs only compute and bandwidth.</p>
+
+<h3 id="37-clock-synchronization-and-temporal-grounding">3.7 Clock Synchronization and Temporal Grounding</h3>
+
+<p>Pheromone decay (<code>e^{-λ(t-t_i)}</code>) and metabolic half-life (<code>2^{-(t-t₀)/T½}</code>) both depend on time. This raises a fundamental question: <strong>how do nodes agree on time?</strong></p>
+
+<p><strong>The problem is real but bounded.</strong> Unlike financial consensus, KRILL-BIA does not require nanosecond precision. Pheromone half-lives are measured in minutes; metabolic half-lives in hours to months. Clock errors of seconds — even minutes — are tolerable.</p>
+
+<p><strong>Three-tier clock strategy:</strong></p>
+
+<pre><code>TIER 1: NANO/FULL NODES (have internet connectivity)
+  Clock source: NTP or GPS (when available)
+  Accuracy: ~1-50 ms
+  These nodes serve as time anchors for local clusters
+
+TIER 2: DUST NODES WITH RTC (Real-Time Clock chip)
+  Clock source: RTC crystal, periodically synchronized with Tier 1 neighbors
+  Accuracy: ~1-10 seconds drift per day
+  Sync protocol: piggyback timestamp on every pheromone trace exchange
+    → each trace carries sender's timestamp
+    → receiver computes offset: Δt = t_received - t_claimed - RTT/2
+    → Kalman filter over offsets from multiple neighbors → robust local time
+
+TIER 3: DUST NODES WITHOUT RTC (cheapest MCUs)
+  Clock source: internal RC oscillator only (±1-5% frequency error)
+  Accuracy: minutes of drift per day if unsynchronized
+  Sync protocol: RELATIVE TIME ONLY
+    → device does not maintain absolute time
+    → pheromone traces timestamped with MONOTONIC COUNTER
+    → neighbors translate counter to real time using observed message intervals
+    → decay computed by NEIGHBORS, not by the device itself
+    → device reports: "this reading is 47 ticks after my last reading"
+    → neighbors know tick duration from calibration (observed over neonatal period)
+</code></pre>
+
+<p><strong>Theorem 3.2 (Temporal Consistency Bound).</strong> For pheromone decay to remain meaningful, the clock error δt between two nodes must satisfy:</p>
+
+<pre><code>δt &lt;&lt; T½_min / ln(2)
+</code></pre>
+
+<p>where T½_min is the shortest half-life in use (EPHEMERAL state, T½ ≈ 10 minutes). This yields δt &lt;&lt; 14.4 minutes. Even the worst Tier 3 node (5% oscillator drift) accumulates only ~72 seconds of error per day, well within this bound if synchronized at least once per day.</p>
+
+<p><strong>Failure mode:</strong> If a Dust node is completely isolated (no neighbors) for extended periods, its local time becomes meaningless. This is handled by Quorum Sensing (Section 7): isolated nodes enter SOLO mode, where pheromone decay is suspended and data is stored with monotonic counters only. Upon reconnection, neighbors reconstruct the temporal ordering from counter sequences and known inter-message intervals.</p>
+
+<p><strong>Key insight:</strong> Biological organisms do not have synchronized clocks either. Circadian rhythms are entrained by external signals (light, temperature) and drift when isolated. KRILL-BIA's approach is identical: time is entrained by neighbor interactions, not by global synchronization.</p>
+
+<h3 id="38-boundary-environments-and-spatial-discontinuities">3.8 Boundary Environments and Spatial Discontinuities</h3>
+
+<p><strong>Problem:</strong> The physical consistency bound (Theorem 3.1) assumes smooth spatial gradients. At environmental boundaries — a wall between indoor/outdoor, the edge of a furnace, the boundary of a cold room — two sensors 1 meter apart may experience a 30°C difference. The consistency bound would flag both as anomalous.</p>
+
+<p><strong>Solution: Boundary-Aware Consistency</strong></p>
+
+<pre><code>APPROACH 1: Learned gradient profiles
+  During neonatal period, the network observes maximum inter-neighbor differences.
+  If sensors A and B consistently differ by 25°C ± 3°C, this is stored as
+  a BOUNDARY PROFILE:
+    boundary(A, B) = {mean_diff: 25°C, std_diff: 3°C}
+
+  Physical consistency check becomes:
+    |q_A - q_B - boundary(A,B).mean_diff| ≤ ε(d, Δt) + σ_A + σ_B + 2·boundary(A,B).std_diff
+
+  The bound ADAPTS to known spatial discontinuities.
+
+APPROACH 2: Multi-modality cross-check
+  At boundaries, different physical quantities may still correlate:
+    - Indoor sensor: 22°C, 40% RH, 1013 hPa
+    - Outdoor sensor: -5°C, 80% RH, 1013 hPa
+
+  Temperature disagrees → boundary violation
+  Pressure agrees → both sensors functional
+  Humidity correlates with temperature → physically consistent
+
+  Cross-modality verification resolves boundary ambiguity.
+
+APPROACH 3: Explicit boundary declaration
+  Deployment metadata includes known boundaries.
+  Operators declare: "Sensor A is inside, Sensor B is outside."
+  Consistency check uses appropriate physics for each environment
+  independently, rather than cross-checking across the boundary.
+
+  This is the least elegant but most robust approach.
+</code></pre>
+
+<p><strong>Residual risk:</strong> Undeclared, unlearned boundaries during the first deployment period may cause transient false positives. The thymic tolerance mechanism (Section 4.5) absorbs these: during the neonatal period, boundary profiles are learned automatically.</p>
+
+<h3 id="39-operation-on-low-power-wide-area-networks-lpwan">3.9 Operation on Low-Power Wide-Area Networks (LPWAN)</h3>
+
+<p>The preceding sections assume local mesh networking (BLE, WiFi, 802.15.4) with sub-second latency and multi-kilobyte payloads. Many real IoT deployments use <strong>LPWAN</strong> technologies (LoRaWAN, NB-IoT, Sigfox) with fundamentally different constraints:</p>
+
+<pre><code>LPWAN CONSTRAINTS vs. MESH:
+  Latency:        seconds to minutes (vs. milliseconds)
+  Payload:        12-250 bytes per message (vs. kilobytes)
+  Duty cycle:     1% (LoRa EU) → max 36 seconds TX per hour
+  Topology:       star-of-stars (gateway-centric, not peer-to-peer)
+  Bidirectional:  limited (downlink windows are scarce)
+</code></pre>
+
+<p><strong>Impact on BIA mechanisms:</strong></p>
+
+<table>
+<thead>
+<tr>
+  <th>Mechanism</th>
+  <th>Impact</th>
+  <th>Adaptation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><strong>Stigmergic trace deposit</strong></td>
+  <td>Cannot maintain local DAG with 12-byte payloads</td>
+  <td><strong>Compressed trace</strong>: 8-byte payload = {device_id_hash(2B), reading(2B), timestamp_delta(2B), confidence(1B), checksum(1B)}. Gateway reconstructs full trace and maintains DAG on behalf of Dust nodes.</td>
+</tr>
+<tr>
+  <td><strong>Pheromone decay</strong></td>
+  <td>Infrequent updates (minutes apart) → stale field</td>
+  <td><strong>Adaptive λ</strong>: decay rate λ is scaled by reporting interval. For LoRa (1 msg/15 min), λ_lora = λ_mesh / 900. Pheromone persists longer because updates are rarer.</td>
+</tr>
+<tr>
+  <td><strong>Physical consistency check</strong></td>
+  <td>Cannot query k neighbors directly (no peer-to-peer)</td>
+  <td><strong>Gateway-mediated check</strong>: gateway receives traces from all devices in range, performs consistency check centrally, and flags anomalies. This sacrifices decentralization but preserves physical grounding.</td>
+</tr>
+<tr>
+  <td><strong>Immune system</strong></td>
+  <td>Behavioral fingerprint requires neighbor storage</td>
+  <td><strong>Gateway as immune proxy</strong>: gateway stores profiles for LPWAN devices. Strata 0-1 run at gateway; device runs only innate rules locally.</td>
+</tr>
+<tr>
+  <td><strong>Quorum sensing</strong></td>
+  <td>Density detection requires local broadcast</td>
+  <td><strong>Implicit quorum</strong>: gateway knows how many devices report per epoch → can compute local density and broadcast mode selection in downlink window.</td>
+</tr>
+<tr>
+  <td><strong>HGT</strong></td>
+  <td>Firmware transfer impossible in 12-byte payloads</td>
+  <td><strong>HGT disabled for LPWAN Dust</strong>. Firmware updates via gateway OTA (centralized). Only mesh-connected Nano+ nodes participate in HGT.</td>
+</tr>
+</tbody>
+</table>
+
+<p><strong>Architectural consequence:</strong> LPWAN devices operate as <strong>degraded Dust nodes</strong> — they contribute traces and receive innate protection, but rely on gateways for immune, consistency, and topology functions. This is architecturally honest: a LoRa sensor with 1% duty cycle and 12-byte payloads <em>cannot</em> participate in decentralized consensus. The gateway acts as a <strong>BIA proxy</strong>, not a trust anchor — physical consistency is still verified against physics, not against the gateway's authority.</p>
+
+<p><strong>Biological analogy:</strong> Red blood cells in biology lack nuclei and cannot participate in immune responses. They perform their core function (oxygen transport ≈ data transport) and rely on the surrounding immune system (white blood cells ≈ gateway) for protection. LPWAN devices are the red blood cells of KRILL-BIA.</p>
+
+<hr />
+
+<h2 id="4-the-pentastratic-immune-system">4. The Pentastratic Immune System</h2>
+
+<h3 id="41-critique-of-existing-approaches">4.1 Critique of Existing Approaches</h3>
+
+<p>Current distributed systems employ one-dimensional reputation scores for node trustworthiness. This approach has four fundamental flaws:</p>
+
+<ol>
+<li><p><strong>Dimensionality collapse.</strong> A scalar reputation cannot distinguish "sensor is miscalibrated" from "sensor is under active attack" from "sensor is in an unusual environment." Each case requires a different response; a single number conflates them.</p></li>
+<li><p><strong>Global knowledge requirement.</strong> Who aggregates the score? A centralized aggregator is a single point of failure. Distributed aggregation requires consensus — recreating the very problem we're trying to solve.</p></li>
+<li><p><strong>Irreversibility.</strong> In practice, reputation recovery is prohibitively slow. A sensor that was briefly miscalibrated but is now fixed remains "untrusted" for an extended period, reducing network coverage.</p></li>
+<li><p><strong>No autoimmune protection.</strong> There is no mechanism to prevent the reputation system from being <em>too aggressive</em> — flagging healthy sensors as malicious due to environmental changes (seasonal variation, hardware aging, relocated deployment).</p></li>
+</ol>
+
+<p>The biological immune system solves all four problems. We adapt its architecture to a five-layer system (hence "pentastratic," from Greek πέντε "five" + Latin stratum "layer"). Our approach builds on the Danger Theory (Matzinger, 2002), which argues that the immune system responds not to "non-self" per se but to <em>danger signals</em> — an insight that directly informs our graduated response model (§4.4) where severity of response is proportional to assessed threat level, not merely to foreignness.</p>
+
+<h3 id="42-stratum-0-innate-immunity">4.2 Stratum 0: Innate Immunity</h3>
+
+<p><strong>Biological analog:</strong> Neutrophils — first responders, fast, non-specific.</p>
+
+<p><strong>Implementation:</strong> Hardcoded boundary checks requiring zero computation, zero network access, zero learning.</p>
+
+<pre><code>INNATE RULES (examples for temperature sensor):
+  IF temperature ∉ [-273.15°C, +10000°C]:   → REJECT (physically impossible)
+  IF temperature ∉ [-40°C, +85°C]:           → REJECT (outside sensor operating range)
+  IF Δtemperature &gt; 50°C per second:          → REJECT (physically implausible rate of chang
+e)
+  IF reporting frequency &gt; 1000 readings/s:   → THROTTLE (hardware cannot sample this fast)
+  IF signature verification fails:            → REJECT (cryptographic failure)
+</code></pre>
+
+<p><strong>Properties:</strong></p>
+
+<ul>
+<li>Execution time: O(1), &lt; 1μs</li>
+<li>Energy cost: negligible</li>
+<li>False positive rate: effectively 0% (bounds are generous)</li>
+<li>Detection scope: only catches gross violations</li>
+<li>No learning, no state, no network dependency</li>
+</ul>
+
+<p>This is the BIOS of the immune system. It stops obvious garbage before any resources are wasted on sophisticated analysis.</p>
+
+<h3 id="43-stratum-1-behavioral-fingerprint-metabolic-profile">4.3 Stratum 1: Behavioral Fingerprint (Metabolic Profile)</h3>
+
+<p><strong>Biological analog:</strong> Major Histocompatibility Complex (MHC) — the molecular identity card that immune cells use to distinguish "self" from "other."</p>
+
+<p><strong>Implementation:</strong> Each device has a multi-dimensional behavioral profile, but — critically — <strong>the device does not know its own profile.</strong> The profile is maintained by neighbors, exactly as in biology: a cell does not evaluate its own normality; the immune system does.</p>
+
+<p><strong>Profile vector</strong> for device i:</p>
+
+<pre><code>Profile(i) = {
+  μ_values:     distribution of measurement values (histogram, 50 bins)
+  μ_temporal:   activity pattern (when active, when asleep, period)
+  μ_comm:       communication pattern (neighbors contacted, frequency)
+  μ_energy:     energy signature (consumption vs. activity correlation)
+  μ_correlation: cross-correlation with k nearest neighbors
+}
+</code></pre>
+
+<p>Each component is a distribution, not a scalar. The profile captures the device's <strong>normal behavior in context</strong> — including its correlations with the physical environment.</p>
+
+<p><strong>Storage:</strong> Each neighbor stores approximately 500 bytes of profile per monitored device. For k = 10 neighbors monitoring each device, total profile storage per device is 5 KB distributed across the network.</p>
+
+<h3 id="44-stratum-2-adaptive-immunity-anomaly-detection">4.4 Stratum 2: Adaptive Immunity (Anomaly Detection)</h3>
+
+<p><strong>Biological analog:</strong> T-cells — detect specific anomalies, mount proportional response.</p>
+
+<p><strong>Implementation:</strong> Response is <strong>graduated and proportional</strong>, not binary:</p>
+
+<pre><code>ANOMALY CLASSIFICATION:
+
+Deviation &lt; 1σ from profile:
+  Classification: NORMAL
+  Response: None
+  Analogy: Healthy vital signs
+
+Deviation 1σ – 2σ from profile:
+  Classification: PYREXIA (elevated temperature)
+  Response: 
+    - Increase monitoring frequency (2×)
+    - Log deviation pattern
+    - NO penalty. NO isolation. NO weight reduction.
+    - Device MAY BE RIGHT — environment may have changed.
+  Analogy: Low-grade fever. Watch and wait.
+
+Deviation 2σ – 3σ from profile:
+  Classification: INFLAMMATION
+  Response:
+    - Active cross-verification with neighbors
+    - IF neighbors CONFIRM the change (their readings also shifted):
+        → UPDATE profile (adaptive learning)
+        → Reclassify as new normal
+    - IF neighbors DENY the change (their readings are stable):
+        → Escalate to Stratum 3
+  Analogy: Significant fever. Run tests.
+
+Deviation &gt; 3σ AND no neighbor confirmation:
+  Classification: REJECTION
+  Response:
+    - Device isolated from consensus participation
+    - Data placed in quarantine (NOT deleted — may be valuable)
+    - Attempt automated remediation (restart, recalibration)
+    - If remediation fails → escalate to human operator
+  Analogy: Organ rejection. Serious intervention required.
+</code></pre>
+
+<p><strong>Key design principle:</strong> The system never assumes an anomalous reading is wrong. It only acts on anomalies that are <em>inconsistent with neighbors</em>. A sensor reading that suddenly changes because of a real event (fire, HVAC failure, door opening) will be <em>confirmed by neighbors</em> and the profile will adapt.</p>
+
+<h3 id="45-stratum-3-thymic-tolerance-selfnon-self-discrimination">4.5 Stratum 3: Thymic Tolerance (Self/Non-Self Discrimination)</h3>
+
+<p><strong>Biological analog:</strong> Thymic selection — in the thymus, T-cells that react too strongly to self-antigens are eliminated, preventing autoimmune disease (Klein et al., 2014).</p>
+
+<p><strong>The autoimmune problem in networks:</strong> Without tolerance training, every seasonal change, every hardware drift, every deployment reconfiguration triggers false alarms. The immune system attacks the network it's supposed to protect. This is the distributed-systems equivalent of lupus or multiple sclerosis.</p>
+
+<p><strong>Implementation:</strong></p>
+
+<pre><code>NEONATAL PERIOD (device joins network):
+  Duration: 7-30 days (configurable, default 14 days)
+
+  During this period:
+    1. Network OBSERVES device without judging
+    2. Neighbors build Profile(i) from raw observations
+    3. Device readings have LOWER confidence weight (w_neonatal = 0.3)
+    4. No anomaly detection runs against this device
+    5. Device participates in data collection but not in immune decisions
+
+  At end of neonatal period:
+    1. Profile(i) is FROZEN as "self-signature"
+    2. Self-signature stored permanently by neighbors
+    3. Device weight promoted to w_normal = 0.8
+    4. Anomaly detection begins using self-signature as baseline
+
+  SELF-SIGNATURE is IMMUTABLE for drift detection (Stratum 4).
+  PROFILE is MUTABLE (adapts to confirmed environmental changes).
+
+  The distinction is critical:
+    - Profile changes with the environment (seasons, upgrades)
+    - Self-signature captures the INTRINSIC behavior of the device
+    - Drift detection compares against self-signature, not profile
+</code></pre>
+
+<p><strong>Why this matters:</strong> Without thymic tolerance, a network deployed in summer would flag all devices as anomalous in winter. With it, seasonal changes are absorbed by profile adaptation (confirmed by neighbors), while genuine device degradation is caught by drift detection against the immutable self-signature.</p>
+
+<h3 id="46-stratum-4-immunological-memory">4.6 Stratum 4: Immunological Memory</h3>
+
+<p><strong>Biological analog:</strong> Memory B-cells and T-cells — after an infection, the immune system retains a template of the pathogen for rapid response to re-infection. This is the basis of vaccination.</p>
+
+<p><strong>Implementation (two mechanisms):</strong></p>
+
+<p><strong>4.6.1 Individual Memory (Reinfection Defense)</strong></p>
+
+<pre><code>IF device i WAS previously classified as REJECTION and subsequently recovered:
+  → Attack signature stored as "memory cell" by neighbors
+  → Upon similar symptoms: IMMEDIATE escalation (skip Strata 0-2)
+  → Response time: O(1) instead of O(days)
+
+Memory cell structure:
+  {
+    signature:   feature vector of the attack (which dimensions deviated, how)
+    timestamp:   when the attack occurred
+    resolution:  how it was resolved (restart, recalibration, replacement)
+    confidence:  how certain we are this was a real attack (vs. false positive)
+  }
+</code></pre>
+
+<p><strong>4.6.2 Vaccination (Preemptive Defense)</strong></p>
+
+<pre><code>IF a novel attack type is detected in cluster A:
+  → Attack signature packaged as "vaccine"
+  → Vaccine propagated STIGMERGICALLY:
+      Cluster A neighbors → their neighbors → their neighbors → ...
+  → Propagation is LOCAL (not global broadcast)
+  → Vaccine strength DECAYS with distance from source:
+      vaccine_strength(d) = initial_strength · e^{-d/d₀}
+      where d₀ = characteristic propagation distance (~10 hops)
+  → Clusters far from the attack receive weak signal (low priority)
+  → Clusters near the attack receive strong signal (high priority)
+
+  THIS IS EXACTLY BIOLOGICAL:
+    Your immune system doesn't broadcast globally.
+    Inflammation signals radiate outward from the infection site,
+    mobilizing nearby resources first.
+</code></pre>
+
+<h3 id="47-the-nk-cell-analog-random-audit">4.7 The NK Cell Analog: Random Audit</h3>
+
+<p><strong>Biological analog:</strong> Natural Killer (NK) cells — patrol randomly, inspect cells regardless of symptoms, kill cells that fail to present proper MHC markers.</p>
+
+<p><strong>The slow drift problem (cancer analog):</strong> The most dangerous attack is slow, deliberate drift. A compromised device changes its behavior by 0.1σ per day. After 100 days, it's 10σ from its original behavior but never triggered a 1σ alarm at any single step. This is precisely how cancer evades the immune system.</p>
+
+<pre><code>NK CELL MECHANISM:
+  Each device has probability p_audit = 0.01 of random full audit per epoch.
+
+  Audit procedure:
+    1. Compare CURRENT behavior against SELF-SIGNATURE (from neonatal period)
+    2. Self-signature is IMMUTABLE — never updated
+    3. If total drift &gt; drift_threshold:
+        → ALARM (even though no single step exceeded 1σ)
+    4. drift_threshold = 5σ from self-signature (calibratable)
+
+  Properties:
+    - Expected time to detect slow drift: ~100 epochs (tunable via p_audit)
+    - Cost: negligible (0.01 × cost of full comparison)
+    - This is the ONLY mechanism requiring LONG-TERM memory
+    - All other strata are stateless or short-memory
+</code></pre>
+
+<hr />
+
+<h2 id="5-metabolic-state-information-thermodynamics">5. Metabolic State: Information Thermodynamics</h2>
+
+<h3 id="51-the-state-bloat-problem">5.1 The State Bloat Problem</h3>
+
+<p>Ethereum's state trie exceeds 400 GB and grows monotonically (Etherscan, 2025). Every smart contract deployed in 2015 still occupies state, regardless of whether anyone has interacted with it in years. This is the informational equivalent of a city where no building is ever demolished — eventually, the maintenance cost exceeds the value.</p>
+
+<p>The second law of thermodynamics states that maintaining order (low entropy) requires continuous energy expenditure. Blockchain violates this by creating ordered information (state entries) and expecting them to persist indefinitely without ongoing cost. This is, in a thermodynamic sense, a perpetual motion machine of information.</p>
+
+<h3 id="52-state-with-half-life">5.2 State with Half-Life</h3>
+
+<p><strong>Definition 5.1 (Metabolic State).</strong> Each fragment of state S in KRILL-BIA has an associated confidence function:</p>
+
+<pre><code>confidence(S, t) = confidence(S, t₀) · 2^{-(t - t₀) / T½(S)}
+</code></pre>
+
+<p>where T½(S) is the state's <strong>information half-life</strong>, determined by its type.</p>
+
+<h3 id="53-state-type-taxonomy">5.3 State Type Taxonomy</h3>
+
+<p><strong>Type I: EPHEMERAL</strong> (T½ = minutes)</p>
+
+<pre><code>Examples: individual sensor readings, GPS positions, battery voltage
+Rationale: A temperature reading from 2 hours ago is genuinely less
+  informative than one from 2 seconds ago. The physical world changes.
+After T½: confidence → 0.5 (still present but low-weight)
+After 5 × T½: effectively garbage-collected (confidence &lt; 0.03)
+</code></pre>
+
+<p><strong>Type II: OPERATIONAL</strong> (T½ = days)</p>
+
+<pre><code>Examples: smart contract state, device configurations, routing tables
+Rationale: Current configuration is relevant; week-old configuration is not
+Can be REFRESHED: any interaction resets confidence to 1.0
+Refresh COSTS resources (PLANKTON) → maintaining state = ongoing expense
+If not refreshed → naturally decays → dead contracts self-destruct
+</code></pre>
+
+<p><strong>Type III: STRUCTURAL</strong> (T½ = months)</p>
+
+<pre><code>Examples: device identity, certificates, cluster membership
+Rationale: Identity is persistent but not eternal
+Requires PERIODIC HEARTBEAT to maintain (proof of life)
+Missing heartbeat → identity decays → "dead" device disappears
+No manual cleanup needed — death is automatic
+</code></pre>
+
+<p><strong>Type IV: ARCHIVAL</strong> (T½ = ∞, but with progressive compression)</p>
+
+<pre><code>Examples: aggregated historical data (weekly averages, monthly summaries)
+Does NOT decay in confidence — but LOSES RESOLUTION over time:
+  Raw minute-by-minute data → (after 1 week) → hourly averages
+  Hourly averages → (after 1 month) → daily averages
+  Daily averages → (after 1 year) → monthly averages
+  Monthly averages → (after 10 years) → yearly averages
+
+THIS IS EXACTLY HOW BIOLOGICAL MEMORY WORKS:
+  You remember yesterday in detail.
+  You remember last year schematically.
+  You remember childhood in vague impressions.
+  The information is progressively COMPRESSED, not deleted.
+</code></pre>
+
+<h3 id="54-apoptosis-programmed-self-destruction">5.4 Apoptosis: Programmed Self-Destruction</h3>
+
+<p>In biology, apoptosis (Kerr, Wyllie &amp; Currie, 1972) is the mechanism by which a cell detects that it is damaged or no longer needed and initiates its own destruction, for the good of the organism. Apoptosis is not death by external force — it is death by internal decision.</p>
+
+<p>No existing distributed system implements this concept. KRILL-BIA introduces three forms:</p>
+
+<p><strong>5.4.1 Device Apoptosis</strong></p>
+
+<pre><code>TRIGGER: Device detects internal compromise
+  (firmware integrity check fails, PUF response anomalous, 
+   secure boot verification fails)
+
+PROTOCOL:
+  1. Device broadcasts "death certificate" to neighbors
+     (signed with current key: "My identity is no longer trustworthy")
+  2. PUF-derived key is rotated (new identity)
+  3. Old state → quarantined by neighbors
+  4. Device restarts with clean identity
+  5. Enters neonatal period again (Stratum 3)
+
+BENEFIT: Self-healing. Compromised devices don't wait for external
+  detection — they detect and respond autonomously.
+</code></pre>
+
+<p><strong>5.4.2 State Apoptosis</strong></p>
+
+<pre><code>TRIGGER: Smart contract detects internal inconsistency
+  (two mutually exclusive conditions both satisfied,
+   invariant violated, deadlock detected)
+
+PROTOCOL:
+  1. Contract state → "apoptotic" flag
+  2. Resources (tokens, bandwidth) → returned to stakeholders
+  3. Contract archived with "apoptosis" metadata
+  4. Dependent contracts notified
+  5. No manual intervention required
+
+BENEFIT: Dead smart contracts don't accumulate. They self-destruct
+  when they become inconsistent, freeing resources automatically.
+</code></pre>
+
+<p><strong>5.4.3 Data Apoptosis</strong></p>
+
+<pre><code>TRIGGER: Data actively contradicted by newer, higher-confidence data
+  (sensor later reports calibration error; firmware update reveals
+   measurement bug; physical ground truth proves reading false)
+
+PROTOCOL:
+  1. Old data marked as "dead" (not waiting for T½ — immediate)
+  2. Downstream consumers notified of data retraction
+  3. Hash stub retained (proof that data existed and was retracted)
+  4. Full content garbage-collected
+
+BENEFIT: Incorrect data is actively removed, not just deprioritized.
+  The network corrects itself rather than accumulating errors.
+</code></pre>
+
+<h3 id="55-the-network-life-cycle">5.5 The Network Life Cycle</h3>
+
+<p>The combination of metabolic state and apoptosis creates a natural life cycle:</p>
+
+<pre><code>Birth       → Device joins, neonatal period, builds profile
+Growth      → Device gains immunological weight, contributes data
+Maturity    → Full participation, refreshes state, maintains identity
+Aging       → Hardware degrades, profile widens (more noise)
+Disease     → Anomaly detected, immune response, treatment or isolation
+Death       → Energy depleted / heartbeat missed → state decays, identity dissolves
+Decomposition → Historical data compressed to aggregates
+Memory      → Aggregated data persists; individual readings forgotten
+</code></pre>
+
+<p><strong>Key property:</strong> The network does not grow monotonically. It <strong>breathes</strong>. Old state decays, new state forms. The global state oscillates around an equilibrium determined by network activity — exactly like population dynamics in an ecosystem (Lotka, 1925; Volterra, 1926).</p>
+
+<hr />
+
+<h2 id="6-entropic-data-valuation">6. Entropic Data Valuation</h2>
+
+<h3 id="61-information-theoretic-foundation">6.1 Information-Theoretic Foundation</h3>
+
+<p>Shannon entropy (Shannon, 1948) quantifies the information content of a signal. For KRILL-BIA, we need a more specific quantity: <strong>conditional mutual information</strong> — how much does a new reading tell us about the world, given what the network already knows?</p>
+
+<p><strong>Definition 6.1 (Data Value).</strong> The value of a reading r from device i is:</p>
+
+<pre><code>V(r, i) = I(r ; World | Network_State) · health(i)
+</code></pre>
+
+<p>where:</p>
+
+<ul>
+<li><strong>I(r ; World | Network_State)</strong> is the conditional mutual information between reading r and the physical world state, conditioned on the network's current knowledge</li>
+<li><strong>health(i) ∈ [0, 1]</strong> is the immunological health weight of device i (from Section 4)</li>
+</ul>
+
+<h3 id="62-practical-computation">6.2 Practical Computation</h3>
+
+<p>Exact computation of conditional mutual information is intractable for large networks. We use a practical approximation based on local information:</p>
+
+<pre><code>I_approx(r, i) = H(Q_local | N_local) - H(Q_local | N_local, r)
+</code></pre>
+
+<p>where:</p>
+
+<ul>
+<li>Q_local = physical quantity in device i's neighborhood</li>
+<li>N_local = readings from all neighbors in the last epoch</li>
+<li>H(·|·) = conditional entropy</li>
+</ul>
+
+<p>This can be computed locally using empirical distributions from recent readings.</p>
+
+<h3 id="63-scenario-analysis">6.3 Scenario Analysis</h3>
+
+<p><strong>Scenario 1: Redundant Reading</strong></p>
+
+<pre><code>Context: 20 sensors report temperature = 23°C ± 0.5°C
+New reading: 23.1°C
+I(r; World | Network) ≈ 0 (negligible new information)
+V(r, i) ≈ 0
+PLANKTON reward: minimal (covers transmission cost only)
+</code></pre>
+
+<p><strong>Scenario 2: First Sensor in Uncovered Area</strong></p>
+
+<pre><code>Context: No existing sensors in this location
+New reading: 23.1°C  
+I(r; World | Network) = H(Q_local) (maximum: total entropy reduction)
+V(r, i) = HIGH
+PLANKTON reward: maximum
+</code></pre>
+
+<p><strong>Scenario 3: Anomaly from Healthy Device</strong></p>
+
+<pre><code>Context: 20 sensors report 23°C ± 0.5°C
+New reading: 45°C from device with health(i) = 0.95
+I(r; World | Network) = VERY HIGH (massive entropy change)
+V(r, i) = very high (0.95 × high_info)
+Interpretation: possible fire, HVAC failure — high-value alert
+PLANKTON reward: very high (device potentially saved the building)
+</code></pre>
+
+<p><strong>Scenario 4: Anomaly from Unhealthy Device</strong></p>
+
+<pre><code>Context: Same as Scenario 3
+New reading: 45°C from device with health(i) = 0.1
+V(r, i) = LOW (high_info × 0.1 = low value)
+Data → quarantine, not reward
+BUT: if neighbors CONFIRM → health(i) retroactively increased
+</code></pre>
+
+<h3 id="64-anti-gaming-properties">6.4 Anti-Gaming Properties</h3>
+
+<p><strong>Attempted gaming strategy:</strong> Report random values → high entropy → high reward.</p>
+
+<p><strong>System response:</strong></p>
+
+<ol>
+<li>Random values violate physical consistency (Theorem 3.1) → immune response</li>
+<li>health(i) drops rapidly</li>
+<li>V(r, i) = high_entropy × low_health = LOW reward</li>
+<li>Continued gaming → full isolation</li>
+</ol>
+
+<p><strong>Theorem 6.1 (Anti-Gaming).</strong> Gaming the entropic valuation is equivalent to exhibiting anomalous behavior, which triggers the immune system, which reduces health(i), which reduces reward. The immune system and tokenomics form a closed defense loop: any strategy that increases information entropy without genuine information gain simultaneously decreases immunological weight, nullifying the reward.</p>
+
+<h3 id="65-emergent-geographic-incentives">6.5 Emergent Geographic Incentives</h3>
+
+<p>The entropic valuation naturally creates economic incentives for optimal sensor placement:</p>
+
+<pre><code>Densely covered area (city center):
+  I(new_sensor; World | existing_sensors) ≈ 0
+  Economic incentive to deploy here: ZERO
+
+Uncovered area (rural field):
+  I(first_sensor; World | nothing) = MAXIMUM
+  Economic incentive to deploy here: MAXIMUM
+
+EMERGENT RESULT: The network autonomously tends toward
+  UNIFORM INFORMATION-THEORETIC COVERAGE.
+
+No central planning required. Entropy does the planning.
+</code></pre>
+
+<p>This is analogous to the <strong>Ideal Free Distribution</strong> in ecology (Fretwell &amp; Lucas, 1969), where organisms distribute themselves across habitats in proportion to resource availability, without central coordination.</p>
+
+<hr />
+
+<h2 id="7-quorum-sensing-leaderless-collective-decision-making">7. Quorum Sensing: Leaderless Collective Decision-Making</h2>
+
+<h3 id="71-biological-origin">7.1 Biological Origin</h3>
+
+<p>In bacterial colonies, quorum sensing (Fuqua, Winans &amp; Greenberg, 1994) enables population-level behavioral transitions without any centralized decision-maker. Each bacterium continuously secretes small signaling molecules (autoinducers). When the local concentration of autoinducer exceeds a threshold — indicating sufficient population density — all bacteria in the area simultaneously switch behavior (e.g., from planktonic to biofilm formation, or from quiescence to bioluminescence).</p>
+
+<p>No bacterium "decides." The behavior <strong>emerges</strong> from local chemistry.</p>
+
+<h3 id="72-krill-bia-implementation">7.2 KRILL-BIA Implementation</h3>
+
+<p>Each device periodically emits a <strong>presence pulse</strong> — a minimal network packet (1 byte, zero payload, cryptographically signed). Cost: negligible energy.</p>
+
+<p>The device measures the local density of presence pulses (received per unit time) and adjusts its operational mode accordingly:</p>
+
+<pre><code>MODE SELECTION (automatic, no election, no leader):
+
+Density &lt; θ_low (e.g., &lt; 3 neighbors detected):
+  MODE: SOLO
+  - Device records data locally (flash storage)
+  - No cross-verification (insufficient neighbors)
+  - Data has LOWER confidence (uncorroborated)
+  - Reports to Nano node when connectivity available
+
+θ_low ≤ Density &lt; θ_high (e.g., 3-10 neighbors):
+  MODE: QUORUM
+  - Cross-verification active
+  - Stigmergic DAG maintained among quorum members
+  - Physical consistency checked
+  - Data has MEDIUM-HIGH confidence
+
+Density ≥ θ_high (e.g., &gt; 10 neighbors):
+  MODE: SWARM
+  - Full stigmergic field active
+  - Immune system operational (all strata)
+  - Entropic valuation active
+  - Data has MAXIMUM confidence
+</code></pre>
+
+<h3 id="73-hysteresis-for-mode-stability">7.3 Hysteresis for Mode Stability</h3>
+
+<p>A naive threshold-based system oscillates when density fluctuates near the threshold. Biology solves this with <strong>hysteresis</strong> — different thresholds for up-transitions and down-transitions.</p>
+
+<p><strong>Definition 7.1 (Hysteretic Mode Transition).</strong> Mode transitions follow:</p>
+
+<pre><code>Transition UP (e.g., QUORUM → SWARM):
+  Requires density &gt; θ_high + Δ (e.g., &gt; 12)
+
+Transition DOWN (e.g., SWARM → QUORUM):
+  Requires density &lt; θ_high - Δ (e.g., &lt; 8)
+
+Hysteresis band: [θ_high - Δ, θ_high + Δ] (e.g., [8, 12])
+Within band: maintain current mode.
+</code></pre>
+
+<p>This is identical to a thermostat with hysteresis — simple, energy-efficient, and provably stable (no oscillation).</p>
+
+<p><strong>Theorem 7.1 (Mode Stability).</strong> With hysteresis band width 2Δ, the minimum time between mode transitions is lower-bounded by 2Δ / (maximum rate of density change). For Δ = 2 and a maximum of 1 device arriving/departing per minute, the minimum inter-transition time is 2 minutes. This prevents rapid oscillation under normal conditions.</p>
+
+<hr />
+
+<h2 id="8-horizontal-gene-transfer-firmware-without-a-center">8. Horizontal Gene Transfer: Firmware Without a Center</h2>
+
+<h3 id="81-biological-origin-and-radical-proposal">8.1 Biological Origin and Radical Proposal</h3>
+
+<p>In bacteria, <strong>horizontal gene transfer</strong> (HGT) enables the transfer of genetic material between organisms that are not in a parent-offspring relationship (Syvanen, 1985; Ochman, Lawrence &amp; Groisman, 2000). A bacterium can acquire antibiotic resistance from a neighboring bacterium of a completely different species. This is fundamentally faster than vertical (hereditary) evolution.</p>
+
+<p>We propose an analogous mechanism for firmware updates in IoT networks. This is, to our knowledge, <strong>unprecedented in distributed systems literature.</strong></p>
+
+<h3 id="82-modular-firmware-architecture">8.2 Modular Firmware Architecture</h3>
+
+<p>The prerequisite for horizontal transfer is modularity. KRILL-BIA firmware is not a monolithic blob but a set of independently deployable modules:</p>
+
+<pre><code>MODULE TAXONOMY:
+
+CORE (≈ genome)
+  - Minimal kernel: crypto primitives, network stack, identity management
+  - Changed RARELY (months-years)
+  - Requires Trust Quorum signature (manufacturer + n-of-m auditors)
+  - Cannot be transferred horizontally (too critical)
+
+CAPABILITIES (≈ plasmids)
+  - Functional modules: compression algorithms, data parsers, ML models
+  - Changed OCCASIONALLY (weeks-months)
+  - Requires manufacturer + auditor signature
+  - CAN be transferred horizontally between compatible devices
+
+ADAPTATIONS (≈ epigenetics)
+  - Local tuning: calibration offsets, sleep schedules, communication parameters
+  - Changed FREQUENTLY (hours-days)
+  - Requires device self-signature only
+  - Transferred automatically to replacement devices in same deployment
+</code></pre>
+
+<h3 id="83-horizontal-transfer-protocol">8.3 Horizontal Transfer Protocol</h3>
+
+<pre><code>TRANSFER PROTOCOL:
+
+1. ADVERTISEMENT
+   Device A has module M (e.g., "LZ4 compression v2.3")
+   A periodically advertises: {module_id, version, signature, size, compatibility_hash}
+   Advertisement is stigmergic — deposited in local DAG, not broadcast
+
+2. EVALUATION (by potential recipient B)
+   B checks:
+     - Is signature valid? (manufacturer + auditor)
+     - Is my hardware compatible? (compatibility_hash matches)
+     - Do I have sufficient energy for installation?
+     - Is module newer than what I have?
+   If all YES → B requests transfer from A
+
+3. TRANSFER
+   Direct peer-to-peer link (BLE, WiFi Direct, or local mesh)
+   Module transferred with integrity verification (hash check)
+   Total transfer: typically 1-50 KB
+
+4. NEONATAL SANDBOX
+   New module runs in SANDBOX for 24 hours
+   Sandbox: module can execute but cannot modify core state,
+     cannot access cryptographic keys, cannot modify other modules
+   Performance metrics collected:
+     - Energy consumption change
+     - Compression ratio change
+     - Error rate
+     - Stability (crashes, exceptions)
+
+5. ACCEPTANCE OR REJECTION
+   After sandbox period:
+     IF performance_improved AND no_crashes:
+       → Module promoted to production
+       → Device reports: "Module M works well" (fitness signal)
+     IF performance_degraded OR crashes:
+       → Module rejected
+       → Automatic rollback to previous version
+       → Device reports: "Module M caused problems" (negative fitness)
+</code></pre>
+
+<h3 id="84-natural-selection-of-modules">8.4 Natural Selection of Modules</h3>
+
+<p>Module <strong>fitness</strong> is computed from aggregated field reports:</p>
+
+<pre><code>fitness(M) = (devices_reporting_improvement) / (devices_that_installed_M)
+</code></pre>
+
+<pre><code>Evolution dynamics:
+
+Module M installed on 100 devices:
+  85 report improvement → fitness = 0.85 → module SPREADS
+  Neighboring devices see high fitness → install M → spreads further
+
+Module N installed on 50 devices:
+  40 report crashes → fitness = 0.20 → module DIES
+  Negative fitness signals propagate → no one installs N
+  Devices with N → automatic rollback
+
+THIS IS NATURAL SELECTION applied to software:
+  - Variation: different modules with different implementations
+  - Selection: fitness based on real-world performance
+  - Inheritance: high-fitness modules spread to new devices
+  - Extinction: low-fitness modules disappear from the population
+</code></pre>
+
+<h3 id="85-viral-defense-malicious-module-protection">8.5 Viral Defense (Malicious Module Protection)</h3>
+
+<pre><code>DEFENSE LAYERS:
+
+Layer 1: Cryptographic signature requirement
+  Module MUST be signed by manufacturer + auditor
+  Unsigned modules → rejected immediately
+  Forged signatures → cryptographic verification fails → rejected
+
+Layer 2: Neonatal sandbox
+  Even with valid signature, module is sandboxed for 24h
+  Malicious behavior in sandbox → rejected before it can do damage
+  Zero access to keys or core state during sandbox
+
+Layer 3: Fitness-based extinction
+  If malicious module passes sandbox but causes long-term harm:
+    → Negative fitness reports from victims
+    → Fitness drops → module stops spreading
+    → Devices with module → auto-rollback
+
+  ATTACK WINDOW: time between deployment and fitness signal accumulation
+  Mitigation: conservative deployment (module spreads to max 10% of
+    compatible devices before broader rollout, similar to canary deployment)
+
+Layer 4: Signature revocation
+  If auditor's key is compromised → revocation broadcast
+  All modules signed by compromised auditor → quarantined
+  Devices → rollback to last known-good version
+</code></pre>
+
+<hr />
+
+<h2 id="9-morphogenetic-topology-self-organizing-network-structure">9. Morphogenetic Topology: Self-Organizing Network Structure</h2>
+
+<h3 id="91-turings-reaction-diffusion-model">9.1 Turing's Reaction-Diffusion Model</h3>
+
+<p>In his seminal paper "The Chemical Basis of Morphogenesis," Alan Turing (1952) demonstrated that two chemicals diffusing at different rates can spontaneously create stable spatial patterns (spots, stripes, spirals) from an initially homogeneous state. This <strong>reaction-diffusion</strong> mechanism explains zebra stripes, leopard spots, and fingerprint patterns (Murray, 2003; Kondo &amp; Miura, 2010).</p>
+
+<p>The mathematical formulation:</p>
+
+<pre><code>∂A/∂t = D_A ∇²A + f(A, I)    (activator)
+∂I/∂t = D_I ∇²I + g(A, I)    (inhibitor)
+
+where:
+  A = activator concentration
+  I = inhibitor concentration
+  D_A = activator diffusion coefficient
+  D_I = inhibitor diffusion coefficient (D_I &gt; D_A)
+  f, g = reaction kinetics
+</code></pre>
+
+<p>The key condition for pattern formation is <strong>D_I &gt; D_A</strong>: the inhibitor diffuses faster than the activator. This creates "local activation, long-range inhibition" — a principle that generates self-organizing spatial patterns.</p>
+
+<h3 id="92-application-to-network-topology">9.2 Application to Network Topology</h3>
+
+<p><strong>This application of reaction-diffusion to network topology is, to our knowledge, unprecedented.</strong></p>
+
+<p>We define two virtual signals in the network. Note: to satisfy Turing's instability condition (D_I &gt; D_A), the <strong>inhibitor must diffuse faster</strong> than the activator. This is counterintuitive but essential — it creates the "local activation, long-range inhibition" pattern that produces stable spatial structures.</p>
+
+<p><strong>Activator A(x, t):</strong> "More connectivity is needed here"</p>
+
+<ul>
+<li>Generated when: data packets are dropped, latency exceeds threshold, coverage gaps detected, new devices join</li>
+<li>Diffusion: <strong>SLOW</strong> (D_A small — stays local, builds up near the source of the need)</li>
+<li>Effect: devices that sense high A increase their communication range, wake up more frequently, relay more aggressively</li>
+<li>Biological analog: morphogen produced at wound site, concentrated locally</li>
+</ul>
+
+<p><strong>Inhibitor I(x, t):</strong> "Capacity is saturated — neighboring areas should not also expand"</p>
+
+<ul>
+<li>Generated when: bandwidth saturated, energy reserves depleted, redundant coverage detected</li>
+<li>Diffusion: <strong>FAST</strong> (D_I &gt; D_A — spreads rapidly to wider neighborhood, preventing over-recruitment)</li>
+<li>Effect: devices in the wider neighborhood that sense high I do not increase their activity, preventing global over-reaction</li>
+<li>Biological analog: long-range inhibitory morphogen (e.g., BMP signaling in limb development)</li>
+</ul>
+
+<p><strong>Key consequence of D_I &gt; D_A:</strong> When a coverage gap appears, the activator builds up <em>locally</em> at the gap, recruiting nearby devices to compensate. Simultaneously, the inhibitor spreads <em>far beyond</em> the gap, preventing the entire region from over-reacting. The result is a proportional, localized response — not a network-wide oscillation.</p>
+
+<h3 id="93-dynamics-and-emergent-behavior">9.3 Dynamics and Emergent Behavior</h3>
+
+<pre><code>Each device measures local concentrations A_local and I_local:
+
+IF A_local &gt; I_local + margin:
+  → INCREASE range/frequency/relay activity
+  → "Grow toward the need"
+
+IF I_local &gt; A_local + margin:
+  → DECREASE range/frequency/relay activity
+  → "Retreat from congestion"
+
+IF |A_local - I_local| &lt; margin:
+  → Maintain status quo
+
+EMERGENT BEHAVIORS:
+
+1. Coverage gap repair:
+   Device fails → local inhibitor drops → neighbors sense A &gt; I
+   → Neighbors increase range → gap covered → A drops → equilibrium
+
+2. Congestion relief:
+   Area overloaded → inhibitor rises → devices reduce activity
+   → Load decreases → inhibitor drops → equilibrium
+
+3. New deployment integration:
+   Many new devices join → inhibitor rises (congestion)
+   → Existing devices sleep more → new devices take over
+   → Smooth handoff without central coordination
+
+4. Energy-aware topology:
+   Low-battery device → generates strong inhibitor (locally)
+   → Neighbors compensate → low-battery device sleeps
+   → Network maintains coverage while conserving energy
+</code></pre>
+
+<h3 id="94-formal-properties">9.4 Formal Properties</h3>
+
+<p><strong>Theorem 9.1 (Steady-State Existence).</strong> Under standard reaction-diffusion conditions (D_I &gt; D_A, stable reaction kinetics), the network topology converges to a steady-state spatial pattern that balances coverage (activator) and resource conservation (inhibitor).</p>
+
+<p><strong>Proof.</strong></p>
+
+<p>Step 1 (Turing instability). The linearized system around the homogeneous steady state (A<em>, I</em>) has a Jacobian J with eigenvalues that depend on the wave number q of spatial perturbations. The diffusion matrix D = diag(D_A, D_I) modifies the eigenvalues to λ(q) = eigenvalues of (J - q²D). The condition D_I &gt; D_A combined with the standard conditions on J (tr(J) &lt; 0, det(J) &gt; 0, and the Turing condition D_I·J₁₁ + D_A·J₂₂ &gt; 2√(D_A·D_I·det(J))) guarantees that there exists a range of wave numbers q ∈ (q_min, q_max) for which Re(λ(q)) &gt; 0 — i.e., the homogeneous state is unstable to perturbations at these wavelengths. This is standard Turing instability analysis (Murray, 2003, Chapter 2).</p>
+
+<p>Step 2 (Bounded nonlinearity). The activator and inhibitor concentrations are bounded: A ∈ [0, A_max] (no device can generate unbounded connectivity demand) and I ∈ [0, I_max] (saturation limits exist). The reaction kinetics f(A, I) and g(A, I) are Lipschitz continuous on this bounded domain.</p>
+
+<p>Step 3 (Existence of steady state). By the Leray-Schauder fixed point theorem, a system of reaction-diffusion equations with Lipschitz nonlinearities on a bounded domain possesses at least one steady-state solution. Combined with Step 1 (the homogeneous solution is unstable), the system must converge to a non-homogeneous steady state — a spatial pattern.</p>
+
+<p>Step 4 (Nash equilibrium property). <strong>This is a conjecture, not proven.</strong> We conjecture that the steady state is a Nash equilibrium (no device can improve network utility by unilateral deviation). This requires showing that each device's strategy (range/frequency as a function of local A, I) is a best response to the resulting field.</p>
+
+<p><strong>Why this conjecture is plausible:</strong> The reaction-diffusion system defines an implicit potential game. Define the network utility function U = Σ_x [coverage(x) - α·energy(x)], where coverage is driven by activator A and energy cost is driven by inhibitor I. Each device's strategy (activity level, range) affects U through local A and I fields. At steady state, ∂U/∂strategy_i = 0 for all i (since the PDE has converged). This is a necessary condition for Nash equilibrium in potential games (Monderer &amp; Shapley, 1996). The missing step is proving that U is indeed a potential function for the device strategy game — i.e., that the gradient of each device's payoff equals the gradient of U. This holds exactly when device payoffs depend only on local field values (locality assumption) and the field aggregation is linear (superposition). Both assumptions are approximately true for BIA but not exact: nonlinear saturation terms in the reaction kinetics break strict potential game structure. Numerical verification on small networks (n &lt; 100) is planned as part of Simulation 3 (§20.2).</p>
+
+<p><strong>Status:</strong> Steps 1-3 are standard results from reaction-diffusion theory. Step 4 (Nash equilibrium) is an open conjecture. □</p>
+
+<hr />
+
+<h2 id="10-mathematical-framework-and-convergence-properties">10. Mathematical Framework and Convergence Properties</h2>
+
+<h3 id="101-convergence-of-stigmergic-consensus">10.1 Convergence of Stigmergic Consensus</h3>
+
+<p><strong>Theorem 10.1 (Stigmergic Convergence).</strong> A stigmergic network with physical consistency constraints converges to a consistent state faster than BFT, under the following conditions:</p>
+
+<ol>
+<li>Greater than 2/3 of devices are honest and properly calibrated</li>
+<li>Honest devices are embedded in a shared physical environment</li>
+<li>The physical quantity being measured varies continuously (Lipschitz continuous in space and time)</li>
+</ol>
+
+<p><strong>Proof.</strong></p>
+
+<p>Step 1 (Agreement without communication). Let Q(x, t) be the Lipschitz-continuous physical field. For any two honest sensors s_i, s_j with Lipschitz constant L_space for spatial variation and L_time for temporal variation:</p>
+
+<pre><code>|q_i - q_j| ≤ L_space · d(x_i, x_j) + L_time · |t_i - t_j| + σ_i + σ_j
+</code></pre>
+
+<p>This follows directly from the Lipschitz condition on Q plus measurement noise. By Theorem 3.1, this means the physical consistency bound is satisfied for all honest pairs. Therefore, honest devices are automatically consistent — agreement is a consequence of measuring shared reality, requiring zero messages.</p>
+
+<p>Step 2 (Detection of dishonest traces). A dishonest device producing reading q_adv that deviates from the physical field by amount δ &gt; ε(d, Δt) + σ_i + σ_j will violate the consistency bound with at least one honest neighbor with probability:</p>
+
+<pre><code>P(detection | δ) ≥ 1 - (f/k)  where f = dishonest neighbors, k = total neighbors
+</code></pre>
+
+<p>For f &lt; k/3 (the honest supermajority condition), P(detection) ≥ 2/3 per epoch. After m epochs, the probability of remaining undetected is at most (1/3)^m, which decays exponentially.</p>
+
+<p>Step 3 (Convergence time). Honest convergence: 0 rounds (instant — physics provides agreement). Dishonest detection: expected O(1/log(3)) ≈ O(1) epochs per device. Total network consistency: O(k) operations per device for neighbor checks, independent of N.</p>
+
+<p>Step 4 (Comparison with BFT). BFT requires O(n/s) messages per round per shard for liveness. Stigmergy requires O(k) checks per device. Since k &lt;&lt; n/s for large networks (k ≈ 10 vs. n/s ≈ 100-10000), the per-device cost is asymptotically lower by factor n/(s·k).</p>
+
+<p><strong>Limitations of this proof:</strong></p>
+
+<ul>
+<li>Step 1 assumes Lipschitz continuity, which fails at phase boundaries (see §3.8)</li>
+<li>Step 2 assumes the adversary's deviation δ is constant; an adaptive adversary may vary δ over time</li>
+<li>The "faster than BFT" claim compares message complexity, not end-to-end latency (which depends on network topology)</li>
+<li>This proof does not address liveness under network partition (see §12.1 Limitation 5) □</li>
+</ul>
+
+<h3 id="102-information-theoretic-bounds">10.2 Information-Theoretic Bounds</h3>
+
+<p><strong>Theorem 10.2 (Minimum Communication for Consensus).</strong> The minimum communication required to achieve consensus on a physical measurement among N devices in a d-dimensional space is:</p>
+
+<pre><code>C_min = Ω(N · k · log(1/ε))  bits
+</code></pre>
+
+<p>where k is the number of neighbors per device and ε is the desired precision.</p>
+
+<p>For BFT:</p>
+
+<pre><code>C_BFT = Ω(N²/s · log(1/ε))  bits
+</code></pre>
+
+<p>The ratio C_BFT / C_min = Ω(N / (s · k)), which grows with network size.</p>
+
+<h3 id="103-stability-of-the-immune-system">10.3 Stability of the Immune System</h3>
+
+<p><strong>Theorem 10.3 (Immune System False Positive Bound).</strong> With thymic tolerance training of duration T_neonatal epochs, the false positive rate of the immune system is bounded by:</p>
+
+<pre><code>FP_rate ≤ P(environmental_change &gt; T_neonatal) + P(sensor_drift &gt; threshold_per_epoch)^{T_neonatal}
+</code></pre>
+
+<p>For T_neonatal = 14 days and typical sensor drift rates, FP_rate &lt; 0.01 (less than 1%).</p>
+
+<h3 id="104-detection-rate-and-precision-recall-tradeoff">10.4 Detection Rate and Precision-Recall Tradeoff</h3>
+
+<p>Theorem 10.3 bounds the false positive rate, but a complete security analysis requires the <strong>true positive rate</strong> (detection rate) and the resulting precision-recall tradeoff.</p>
+
+<p><strong>Definition 10.1 (Detection Rate).</strong> The true positive rate (TPR) of stratum s is the probability that a genuinely anomalous reading is correctly classified as anomalous:</p>
+
+<pre><code>TPR(s) = P(classified_anomalous | truly_anomalous)
+</code></pre>
+
+<p><strong>Per-stratum detection analysis:</strong></p>
+
+<pre><code>Stratum 0 (Innate):
+  Detects: physically impossible readings (outside absolute bounds)
+  TPR: ~100% for gross violations (guaranteed by hardcoded bounds)
+  Misses: subtle attacks within physical bounds
+
+Stratum 1 (Behavioral Fingerprint):
+  Detects: deviations from established behavioral profile
+  TPR depends on deviation magnitude:
+    &gt; 3σ deviation: TPR ≈ 99.7% (by definition of normal distribution)
+    2-3σ deviation: TPR ≈ 95%
+    1-2σ deviation: TPR ≈ 50-68% (overlaps with normal variation)
+  Misses: attacks that mimic normal behavioral patterns
+
+Stratum 2 (Adaptive, with neighbor confirmation):
+  TPR_adaptive = TPR_fingerprint × P(neighbors_deny_change)
+  For genuine attacks (neighbors not compromised):
+    P(neighbors_deny) ≈ 1 - f/k where f = compromised neighbors
+    For f = 0: TPR_adaptive ≈ TPR_fingerprint
+    For f = k/3: TPR_adaptive ≈ 0.67 × TPR_fingerprint
+
+NK Random Audit:
+  Detects: slow drift (accumulated deviation from self-signature)
+  TPR_NK = 1 - (1 - p_audit)^{t/epoch} where t = time since drift began
+  For p_audit = 0.01, expected detection time = 100 epochs
+  After 200 epochs: TPR_NK = 1 - 0.99^200 ≈ 0.87
+  After 500 epochs: TPR_NK ≈ 0.99
+</code></pre>
+
+<p><strong>Combined system precision-recall:</strong></p>
+
+<pre><code>PRECISION = TP / (TP + FP)
+  With FP_rate &lt; 0.01 and baseline anomaly rate a ≈ 0.001-0.01:
+  Precision = (a × TPR) / (a × TPR + (1-a) × FP_rate)
+
+  For a = 0.01, TPR = 0.95, FP_rate = 0.01:
+    Precision = (0.01 × 0.95) / (0.01 × 0.95 + 0.99 × 0.01)
+             = 0.0095 / (0.0095 + 0.0099)
+             = 0.49
+
+  THIS IS CONCERNING: ~50% precision means half of all flagged events are
+  false positives. This is the base rate problem (Axelsson, 2000).
+
+MITIGATION (why this is acceptable in KRILL-BIA):
+  1. GRADUATED RESPONSE: False positives at the PYREXIA level (1-2σ) trigger
+     only increased monitoring — zero penalty. The cost of FP is low.
+  2. NEIGHBOR CONFIRMATION: Escalation to INFLAMMATION/REJECTION requires
+     neighbor disagreement. This dramatically reduces FP at action-taking levels:
+     FP_rejection ≈ FP_rate × P(neighbors_wrongly_deny) ≈ 0.01 × 0.01 = 0.0001
+  3. The precision at REJECTION level (where actual penalties occur):
+     Precision_rejection ≈ (a × TPR) / (a × TPR + (1-a) × 0.0001) ≈ 0.99
+
+RESULT: Low-severity detection (monitoring) has moderate precision (acceptable
+  because cost of action is near-zero). High-severity detection (isolation) has
+  high precision (required because cost of action is high). The graduated
+  response IS the precision-recall solution.
+</code></pre>
+
+<p><strong>Open question:</strong> The above analysis assumes independent false positives across strata. If false positives are correlated (e.g., seasonal change triggers FP in multiple strata simultaneously), the combined FP rate at rejection level may be higher than 0.0001. Empirical validation on real deployment data is required (see §20.2).</p>
+
+<hr />
+
+<h2 id="11-energy-complexity-analysis">11. Energy Complexity Analysis</h2>
+
+<h3 id="111-per-device-energy-model">11.1 Per-Device Energy Model</h3>
+
+<p><strong>BFT node (validator):</strong></p>
+
+<pre><code>E_BFT = E_compute(consensus) + E_comm(n/s messages per round) per round
+      = O(1) + O(n/s)  energy units per round
+      → grows with shard size
+</code></pre>
+
+<p><strong>Stigmergic node:</strong></p>
+
+<pre><code>E_stig = E_measure + E_record + E_broadcast(k neighbors)
+       + p_anomaly · E_consensus_local
+       = O(1) + O(1) + O(k) + p · O(k²)
+       → constant for given k, independent of N
+</code></pre>
+
+<h3 id="112-network-wide-comparison">11.2 Network-Wide Comparison</h3>
+
+<p>We compare at scale N = 10⁹ devices, with BFT parameters s = 10⁶ shards and n_shard = N/s = 10³ validators per shard, and stigmergic parameters k = 10 neighbors and p_anomaly = 0.01.</p>
+
+<p><strong>BFT total compute per round:</strong></p>
+
+<p>Each shard runs one BFT round with O(n_shard) messages. Each message involves block validation at cost C_block (signature verification, Merkle proof, state transition). Total across all shards:</p>
+
+<pre><code>E_BFT = s × n_shard × C_block = 10⁶ × 10³ × C_block = 10⁹ · C_block
+</code></pre>
+
+<p><strong>Stigmergic total compute per round:</strong></p>
+
+<p>Each device performs k local consistency checks (scalar comparison) at cost C_compare. With probability p_anomaly, a device triggers a local immune response requiring k² cross-verifications:</p>
+
+<pre><code>E_stig = N × (k · C_compare + p_anomaly · k² · C_compare)
+       = 10⁹ × (10 + 0.01 × 100) × C_compare
+       = 10⁹ × 11 × C_compare
+       = 1.1 × 10¹⁰ · C_compare
+</code></pre>
+
+<p><strong>Energy ratio:</strong></p>
+
+<pre><code>E_BFT / E_stig = (10⁹ · C_block) / (1.1 × 10¹⁰ · C_compare)
+               ≈ (C_block / C_compare) / 11
+</code></pre>
+
+<p>The key factor is C_block / C_compare — the cost of full block validation versus a scalar physical consistency check:</p>
+
+<ul>
+<li>C_compare involves: one subtraction, one absolute value, one comparison ≈ <strong>3-5 arithmetic ops</strong></li>
+<li>C_block involves: signature verification (~10⁴ ops), Merkle proof (~10² ops), state transition (~10³ ops) ≈ <strong>10⁴ ops</strong> (conservative)</li>
+</ul>
+
+<p>Therefore:</p>
+
+<pre><code>C_block / C_compare ≈ 10³ to 10⁴ (conservative to moderate)
+E_BFT / E_stig ≈ 10² to 10³
+</code></pre>
+
+<p>With larger shard sizes (n_shard = 10⁴) or more complex block validation (smart contract execution), the ratio reaches 10⁵-10⁷. The range <strong>10²-10⁷</strong> depends on deployment parameters, with 10³ as the conservative baseline for simple data-only transactions.</p>
+
+<p><strong>Summary:</strong> Stigmergic consensus achieves a <strong>10³× energy reduction</strong> under conservative assumptions, scaling to 10⁷× for complex workloads — because physical consistency checks are inherently cheaper than cryptographic block validation.</p>
+
+<h3 id="113-scaling-properties">11.3 Scaling Properties</h3>
+
+<table>
+<thead>
+<tr>
+  <th>Metric</th>
+  <th>BFT (per round)</th>
+  <th>Stigmergy (per round)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Messages (total network)</td>
+  <td>O(N)</td>
+  <td>O(k · N) with k &lt;&lt; 1 per msg cost</td>
+</tr>
+<tr>
+  <td>Compute (total network)</td>
+  <td>O(N · C_block)</td>
+  <td>O(k · N · C_compare)</td>
+</tr>
+<tr>
+  <td>Scales with N</td>
+  <td>Yes (linear in messages, quadratic in energy per shard)</td>
+  <td>Yes, but coefficient is ~10³-10⁷× smaller</td>
+</tr>
+<tr>
+  <td>Scales with connectivity k</td>
+  <td>Independent (k not a parameter)</td>
+  <td>Linear in k (k ≈ 5-20, small constant)</td>
+</tr>
+</tbody>
+</table>
+
+<hr />
+
+<h2 id="12-risk-analysis-and-open-problems">12. Risk Analysis and Open Problems</h2>
+
+<h3 id="121-fundamental-limitations">12.1 Fundamental Limitations</h3>
+
+<p><strong>Limitation 1: Physical Ground Truth Not Universal</strong></p>
+
+<p>Not all IoT data has physical ground truth. A door sensor reporting "open" or "closed" cannot be cross-verified with physics (unless a camera or proximity sensor is co-located). Binary/discrete data has weaker physical consistency constraints than continuous data.</p>
+
+<p><em>Mitigation:</em> For data without physical ground truth, fall back to classical consensus among co-located sensors of different modalities (e.g., door sensor + accelerometer + magnetic switch).</p>
+
+<p><em>Residual risk:</em> Some scenarios genuinely lack redundancy. Single-sensor deployments cannot benefit from stigmergic consensus.</p>
+
+<p><strong>Discrete Data Fallback Protocol:</strong></p>
+
+<p>The above mitigation requires a concrete protocol for when stigmergic consensus is inapplicable:</p>
+
+<pre><code>DISCRETE DATA HANDLING:
+
+CASE 1: Multi-modal redundancy available (door sensor + accelerometer + magnetic switch)
+  Protocol: LOCAL MULTI-MODAL CONSENSUS
+    → At least 2 of 3 modalities must agree on state change
+    → Agreement check: temporal correlation (all report within Δt_max = 2 seconds)
+    → Cost: O(m) where m = number of co-located modalities (typically 2-4)
+    → No BFT needed — physical correlation replaces it
+
+CASE 2: Single binary sensor, no redundancy
+  Protocol: REPUTATION-WEIGHTED ACCEPTANCE
+    → Accept reading if device health(i) &gt; 0.8 AND no recent anomalies
+    → Flag as "unverified" if health(i) ∈ [0.5, 0.8]
+    → Reject if health(i) &lt; 0.5
+    → Data tagged with confidence = health(i) × 0.7 (capped below stigmergic data)
+    → Downstream consumers see confidence tag and act accordingly
+
+CASE 3: Critical binary data (e.g., fire alarm, intrusion detection)
+  Protocol: MANDATORY MULTI-MODAL DEPLOYMENT
+    → System requirement: critical binary events MUST have ≥2 independent sensors
+    → Single-sensor critical data → automatic "unverified" flag + alert to operator
+    → This is a deployment constraint, not a protocol limitation
+</code></pre>
+
+<p><strong>Limitation 2: No Formal Byzantine Fault Tolerance Proof</strong></p>
+
+<p>The stigmergic model has not been formally proven to satisfy classical BFT properties (safety + liveness under f &lt; n/3 adversary). It may provide a <em>different</em> security model — probabilistic rather than deterministic, physical rather than computational.</p>
+
+<p><em>Mitigation:</em> Formalize the "physical BFT" model as a new security definition. Prove bounds under this model. This is an open research problem.</p>
+
+<p><em>Residual risk:</em> Until formal proofs exist, the security guarantees are empirical, not mathematical.</p>
+
+<p><strong>Limitation 3: Autoimmune Disease</strong></p>
+
+<p>In biology, autoimmune diseases affect 5-8% of the human population (Jacobson et al., 1997). If KRILL-BIA's immune system has a comparable false positive rate, at 10⁹ devices, 50-80 million devices would be falsely isolated.</p>
+
+<p><em>Mitigation:</em> Thymic tolerance training (Section 4.5) and graduated response (Section 4.4) reduce false positives significantly below the biological baseline. Target: &lt; 0.1% false positive rate.</p>
+
+<p><em>Residual risk:</em> Achieving &lt; 0.1% FP rate while maintaining high detection sensitivity is a non-trivial engineering challenge. There may be a fundamental precision-recall tradeoff.</p>
+
+<p><strong>Limitation 4: Horizontal Gene Transfer as Attack Vector</strong></p>
+
+<p>If a legitimate auditor's signing key is compromised, the attacker can produce validly-signed malicious modules that spread through the network before negative fitness signals accumulate.</p>
+
+<p><em>Mitigation:</em> Neonatal sandbox (24h), canary deployment (max 10% initial rollout), key revocation broadcast.</p>
+
+<p><em>Residual risk:</em> The attack window (time between deployment and fitness signal accumulation) may be 24-72 hours. During this window, up to 10% of compatible devices may be affected.</p>
+
+<p><strong>Limitation 5: Metabolic State and Network Partitions</strong></p>
+
+<p>If a cluster is partitioned from the network for a period exceeding the state half-life, OPERATIONAL and EPHEMERAL state will decay. Devices must rebuild state from scratch upon reconnection.</p>
+
+<p><em>Mitigation:</em> STRUCTURAL state (device identity) has long half-life (months). ARCHIVAL data (aggregates) has infinite half-life. Only transient operational state is lost. Devices retain their identity and historical summaries.</p>
+
+<p><em>Residual risk:</em> In critical applications, loss of operational state during extended partition may be unacceptable. For such cases, local "DNA" — a minimal immutable state core — should be maintained with T½ = ∞.</p>
+
+<h3 id="122-open-research-problems">12.2 Open Research Problems</h3>
+
+<ol>
+<li><strong>Formalization of Physical BFT:</strong> We provide an initial formalization below; full proof is left to future work.</li>
+</ol>
+
+<p><strong>Definition 12.1 ((ε, δ, k)-Physical Byzantine Fault Tolerance).</strong> A distributed sensing protocol achieves (ε, δ, k)-PBFT if, for any adversary controlling f &lt; n/3 nodes in a locality of n nodes, each with at least k honest neighbors, the probability that the network accepts a reading r̂ deviating from physical ground truth Q(x, t) by more than ε satisfies:</p>
+
+<pre><code>P( |r̂ - Q(x, t)| &gt; ε ) ≤ δ
+</code></pre>
+
+<p>where ε = L_space · d_max + L_time · Δt_max + 2σ_sensor (the physical consistency bound from Theorem 3.1), and δ depends on the adversary fraction f/n and neighborhood size k.</p>
+
+<p><strong>Theorem 12.1 (PBFT Bound).</strong> Under the stigmergic consensus protocol with physical consistency checking, the system achieves (ε, δ, k)-PBFT with:</p>
+
+<pre><code>δ ≤ (f/k)^{⌈k/2⌉}
+</code></pre>
+
+<p><em>Proof sketch.</em> For the network to accept a false reading r̂ with |r̂ - Q(x,t)| &gt; ε, the reading must pass physical consistency checks against a majority of k neighbors. Each honest neighbor rejects r̂ with probability 1 (deterministic, by Theorem 3.1). Therefore, acceptance requires that at least ⌈k/2⌉ of the k neighbors are adversarial. Under random neighbor assignment, the probability that ≥ ⌈k/2⌉ of k neighbors are adversarial when the global adversary fraction is f/n follows a hypergeometric distribution, bounded above by (f/k)^{⌈k/2⌉} via a Chernoff-type argument.</p>
+
+<p>For f/n = 0.30 and k = 10: δ ≤ 0.30^5 = 0.00243 (&lt; 0.25%).
+For f/n = 0.20 and k = 10: δ ≤ 0.20^5 = 0.00003 (&lt; 0.003%).
+For f/n = 0.10 and k = 10: δ ≤ 0.10^5 = 0.00001 (&lt; 0.001%).</p>
+
+<p><strong>Comparison with classical BFT:</strong> Classical BFT guarantees safety deterministically (δ = 0) for f &lt; n/3 but requires O(n²) communication. PBFT provides probabilistic safety (δ &gt; 0 but exponentially small in k) with O(k) communication. The tradeoff is: PBFT sacrifices deterministic guarantees for exponentially lower communication cost. For IoT deployments where k ≥ 10, the resulting δ &lt; 0.003 is practically equivalent to deterministic safety.</p>
+
+<p><strong>Limitations:</strong> This bound assumes (a) honest neighbors are not spatially correlated with adversarial neighbors (random placement), (b) the physical field Q(x,t) is Lipschitz continuous (fails for discrete data — see §12.1), and (c) adversarial nodes cannot manipulate the physical environment itself (see §12.3, L5 threat class). A full proof requires formalizing the random neighbor assumption and handling adaptive adversaries who choose placement strategically. □</p>
+
+<ol start="2">
+<li><p><strong>Optimal Thymic Training Duration:</strong> What is the minimum neonatal period that achieves &lt; 0.1% FP rate? This depends on environmental variability and sensor characteristics. A principled method for setting T_neonatal adaptively is needed.</p></li>
+<li><p><strong>Reaction-Diffusion Parameter Tuning:</strong> The activator and inhibitor diffusion rates (D_A, D_I) determine the spatial patterns (Turing instability analysis). How should these be set for optimal network topology? Is there a self-tuning mechanism?</p></li>
+<li><p><strong>Cross-Modality Stigmergy:</strong> When sensors measure different physical quantities (temperature, humidity, pressure), how should their pheromone fields interact? Physical correlations between quantities (e.g., dew point depends on temperature and humidity) could be exploited for cross-modality consistency checking.</p></li>
+<li><p><strong>Post-Quantum PUF Identity:</strong> Current PUF-based identity relies on the difficulty of physical cloning. If quantum sensors enable precise characterization of PUF responses, the cloning assumption may fail. Post-quantum PUF designs are an open hardware research problem.</p></li>
+</ol>
+
+<h3 id="123-consolidated-threat-model">12.3 Consolidated Threat Model</h3>
+
+<p>The companion whitepaper (§16) defines six adversary classes. The following table maps KRILL-BIA's defense mechanisms to each class:</p>
+
+<table>
+<thead>
+<tr>
+  <th>Adversary Class</th>
+  <th>Capability</th>
+  <th>Primary BIA Defense</th>
+  <th>Secondary BIA Defense</th>
+  <th>Residual Risk</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><strong>L1: Script Kiddie</strong></td>
+  <td>Network scanning, replay attacks, public exploit kits</td>
+  <td>Innate Immunity (Stratum 0): rejects malformed/replayed traces; PUF identity: prevents spoofing</td>
+  <td>Behavioral Fingerprint: detects unusual comm patterns</td>
+  <td>Low: standard defenses sufficient</td>
+</tr>
+<tr>
+  <td><strong>L2: Skilled Hacker</strong></td>
+  <td>Custom exploits, firmware RE, man-in-the-middle</td>
+  <td>Adaptive Immunity (Stratum 2): detects behavioral deviation post-compromise; Thymic Tolerance: flags sudden profile changes</td>
+  <td>NK Random Audit: catches slow drift after compromise; HGT sandbox: contains malicious modules</td>
+  <td>Medium: persistent adversary may evade detection for days</td>
+</tr>
+<tr>
+  <td><strong>L3: Organized Crime</strong></td>
+  <td>Multiple compromised devices, economic motivation, sustained campaigns</td>
+  <td>Physical Consistency Bound: requires physical presence; Pheromone decay: limits attack persistence</td>
+  <td>Immunological Memory: rapid response to known attack patterns; Entropic anti-gaming: neutralizes reward manipulation</td>
+  <td>Medium: physical deployment cost is primary deterrent</td>
+</tr>
+<tr>
+  <td><strong>L4: Competitor/Corporate</strong></td>
+  <td>Supply chain access, insider threat, bulk device purchase</td>
+  <td>PUF identity: each device unique despite bulk purchase; Thymic tolerance: 14-30 day delay limits rapid Sybil</td>
+  <td>Module fitness: prevents malicious firmware spread; NK audit: detects gradual subversion</td>
+  <td>High: supply chain attacks bypass many defenses</td>
+</tr>
+<tr>
+  <td><strong>L5: State Actor</strong></td>
+  <td>Unlimited resources, sophisticated attacks, physical access to infrastructure</td>
+  <td><strong>Exceeds BIA's design scope.</strong> Physical consistency is the last line: attacker must defeat physics to corrupt data</td>
+  <td>All layers active but may be insufficient against adversary who controls physical environment</td>
+  <td>Very High: no distributed system can fully resist state-level physical attacks</td>
+</tr>
+<tr>
+  <td><strong>L6: Protocol-Level</strong></td>
+  <td>Exploit design flaws in BIA mechanisms themselves</td>
+  <td>Graduated response: prevents catastrophic failure from single mechanism bypass</td>
+  <td>Multi-layer redundancy: attacker must defeat multiple independent strata simultaneously</td>
+  <td>High: theoretical attacks may exist against novel mechanisms</td>
+</tr>
+</tbody>
+</table>
+
+<p><strong>Key observation:</strong> BIA's defense model is fundamentally different from blockchain's. Blockchain defenses are <em>economic</em> (cost of 51% attack). BIA defenses are <em>physical</em> (cost of deploying hardware + defeating physics) plus <em>temporal</em> (thymic tolerance delays) plus <em>multi-dimensional</em> (five independent immune strata). An attacker who defeats one layer must still face four others.</p>
+
+<p><strong>Honest assessment of gaps:</strong></p>
+
+<ul>
+<li>Supply chain attacks (L4) are the most underdefended vector. A manufacturer who embeds malicious behavior into devices <em>before</em> neonatal period can define "normal" to include the malicious behavior. Mitigation: multi-vendor deployments + periodic re-calibration events.</li>
+<li>Coordinated physical attacks (L3+) where the adversary controls the physical environment (e.g., heating a room to make sensors report false "normal" temperatures) can defeat physical consistency. This is a fundamental limit: if reality is manipulated, physics-based verification fails.</li>
+</ul>
+
+<h3 id="124-cascading-failure-analysis">12.4 Cascading Failure Analysis</h3>
+
+<p>Biological systems are vulnerable to cascading failures (sepsis = immune overreaction; cytokine storm = positive feedback loop in inflammation). KRILL-BIA must address analogous scenarios.</p>
+
+<p><strong>Scenario 1: Pheromone Poisoning + Autoimmune Cascade</strong></p>
+
+<pre><code>Attack: Adversary poisons pheromone field in cluster A
+  → Immune system in cluster A escalates to REJECTION for multiple devices
+  → Multiple simultaneous rejections look like "mass infection"
+  → Immunological memory creates vaccine for this "attack pattern"
+  → Vaccine propagates to neighboring clusters B, C
+  → Clusters B, C now have hair-trigger response to similar patterns
+  → Normal environmental event in cluster B matches vaccine pattern
+  → Cluster B enters mass rejection → cascade spreads
+
+RESULT: Network-wide autoimmune collapse triggered by local attack
+
+DEFENSE MECHANISMS:
+  1. REJECTION RATE LIMITER: No cluster may reject more than 20% of devices
+     per epoch. If threshold exceeded → all pending rejections PAUSED,
+     escalated to Full Node for human review.
+  2. VACCINE ATTENUATION: Vaccine strength decays with distance (§4.6.2).
+     At distance &gt; 10 hops, vaccine signal is negligible. Cascades are
+     geographically bounded.
+  3. COOLDOWN PERIOD: After mass rejection event, cluster enters 
+     "immunosuppression mode" (reduced sensitivity) for 24 hours.
+     Analogous to anti-inflammatory response in biology.
+  4. INDEPENDENT VERIFICATION: Rejection requires neighbor confirmation.
+     In autoimmune cascade, neighbors are also being rejected → confirmation
+     fails → cascade self-limits because there are no healthy neighbors
+     left to confirm the rejections.
+</code></pre>
+
+<p><strong>Scenario 2: HGT Attack During Immune Suppression</strong></p>
+
+<pre><code>Attack: Adversary times malicious module deployment to coincide with
+  mass device replacement (e.g., scheduled hardware upgrade)
+  → Many devices in neonatal period simultaneously
+  → Immune system has reduced coverage (neonatal devices can't participate)
+  → Malicious module spreads during the coverage gap
+
+DEFENSE MECHANISMS:
+  1. STAGGERED DEPLOYMENT: Hardware replacement should be phased (max 10%
+     of cluster per epoch). This is an operational best practice, not
+     protocol-enforced.
+  2. VETERAN SENTINEL: Devices with &gt; 6 months of service are "veterans"
+     (w_base = 1.0). Veterans are never replaced simultaneously. At least
+     30% of cluster must remain veteran during any replacement phase.
+  3. MODULE QUARANTINE DURING NEONATAL SURGE: If &gt; 30% of cluster is
+     neonatal, HGT is automatically suspended for that cluster. No new
+     modules can be transferred until neonatal percentage drops below 20%.
+</code></pre>
+
+<p><strong>Scenario 3: Entropic Manipulation + Physical Attack</strong></p>
+
+<pre><code>Attack: Adversary deploys sensors in uncovered area (high entropic value)
+  → Devices earn high PLANKTON rewards (§6.2 Scenario 2)
+  → Adversary now has economic incentive AND trusted position
+  → Gradually shifts readings to influence network state
+
+DEFENSE MECHANISMS:
+  1. HEALTH MONITORING: Entropic value does not override immune system.
+     High-value data from deteriorating-health device is flagged.
+  2. THYMIC BASELINE: After neonatal period, self-signature is fixed.
+     NK audit compares against baseline regardless of entropic contribution.
+  3. REWARD VESTING: PLANKTON rewards for new sensors vest over 30 days
+     (configurable). Adversary cannot extract value before immune system
+     has established behavioral baseline.
+</code></pre>
+
+<p><strong>Meta-defense principle:</strong> KRILL-BIA's mechanisms are designed to be <strong>independently fail-safe</strong>. Each mechanism degrades gracefully if another fails. The failure of pheromone consensus does not disable the immune system. The failure of the immune system does not disable metabolic decay. No single mechanism failure cascades into total system failure — the remaining mechanisms continue to provide partial protection.</p>
+
+<hr />
+
+<h2 id="13-integration-with-the-krill-blockchain-layer">13. Integration with the KRILL Blockchain Layer</h2>
+
+<h3 id="131-relationship-between-bia-and-blockchain">13.1 Relationship Between BIA and Blockchain</h3>
+
+<p>KRILL-BIA is not a standalone system — it is designed as the <strong>physical-layer intelligence</strong> that operates beneath and alongside the KRILL blockchain described in the companion whitepaper. The relationship is symbiotic:</p>
+
+<table>
+<thead>
+<tr>
+  <th>Function</th>
+  <th>KRILL Blockchain Layer</th>
+  <th>KRILL-BIA Layer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><strong>Consensus</strong></td>
+  <td>BFT for cross-organizational trust (financial, contractual)</td>
+  <td>Stigmergic for physical data (sensor readings, measurements)</td>
+</tr>
+<tr>
+  <td><strong>Security</strong></td>
+  <td>Stake-based slashing, cryptographic verification</td>
+  <td>Immune system, physical consistency, PUF identity</td>
+</tr>
+<tr>
+  <td><strong>State</strong></td>
+  <td>On-chain state (UTXO, contracts) with pruning</td>
+  <td>Metabolic state with thermodynamic decay</td>
+</tr>
+<tr>
+  <td><strong>Data valuation</strong></td>
+  <td>PLANKTON utility token for bandwidth</td>
+  <td>Entropic valuation for information reward</td>
+</tr>
+<tr>
+  <td><strong>Topology</strong></td>
+  <td>Hierarchical sharding (Local → Regional → Global)</td>
+  <td>Morphogenetic self-organization within shards</td>
+</tr>
+<tr>
+  <td><strong>Firmware</strong></td>
+  <td>Centralized OTA with sponsor signature</td>
+  <td>Horizontal gene transfer (decentralized, evolutionary)</td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="132-where-bia-sits-in-the-node-hierarchy">13.2 Where BIA Sits in the Node Hierarchy</h3>
+
+<pre><code>DUST NODES:
+  Run: Stigmergic trace deposit, Innate Immunity (Stratum 0), Quorum Sensing pulse
+  Cannot run: Full immune system, morphogenetic topology, entropic valuation
+  BIA overhead: ~2KB RAM, ~500 bytes flash for innate rules
+
+NANO NODES:
+  Run: All of Dust + Behavioral Fingerprint (Stratum 1), Adaptive Immunity (Stratum 2),
+       local pheromone field maintenance, quorum sensing aggregation
+  BIA overhead: ~32KB RAM, ~8KB flash for profiles + rules
+
+FULL NODES:
+  Run: All of Nano + Thymic Tolerance (Stratum 3), NK Random Audit,
+       Immunological Memory, Entropic Valuation, Morphogenetic signals,
+       Horizontal Gene Transfer evaluation
+  BIA overhead: ~128KB RAM, ~64KB flash
+
+ARCHIVE NODES:
+  Run: All of Full + long-term immunological memory storage,
+       historical entropic valuation analytics, module fitness tracking
+  BIA overhead: ~512KB RAM, scaling storage
+</code></pre>
+
+<h3 id="133-data-path-physical-reading-to-on-chain-settlement">13.3 Data Path: Physical Reading to On-Chain Settlement</h3>
+
+<pre><code>1. Sensor measures temperature → q_i = 23.1°C
+2. BIA: Physical consistency check against k neighbors → PASS
+3. BIA: Entropic valuation → V(r, i) = 0.7 (moderate information gain)
+4. BIA: Deposit pheromone trace in local DAG → stigmergic field updated
+5. Nano node: Batch traces from multiple Dust nodes
+6. BLOCKCHAIN: Nano submits batch to Local Shard Full nodes
+7. BLOCKCHAIN: BFT consensus on batch (only for on-chain settlement)
+8. BLOCKCHAIN: State updated, PLANKTON allocated
+
+  PLANKTON ALLOCATION (reconciling companion whitepaper §11.5):
+    The companion whitepaper defines PLANKTON as a stake-for-bandwidth
+    utility token: devices stake SHELL to receive bandwidth allocation.
+
+    BIA's entropic valuation V(r, i) does NOT replace this mechanism.
+    Instead, the two systems are complementary:
+
+    a) BANDWIDTH ALLOCATION (whitepaper §11.5):
+       Determined by SHELL stake → fixed bandwidth quota per epoch
+       This is the BASE resource allocation: "how much can you transmit?"
+
+    b) REWARD DISTRIBUTION (BIA entropic valuation):
+       Within allocated bandwidth, V(r, i) determines PLANKTON REWARDS:
+       high-value data → bonus PLANKTON refund (net cost of operation reduced)
+       low-value data → no bonus (full bandwidth cost paid)
+
+    The relationship:
+       PLANKTON_net(i) = PLANKTON_staked(i) - bandwidth_cost(i) + Σ V(r, i)
+
+    Devices that produce high-information data earn back their bandwidth costs
+    and potentially profit. Devices that produce redundant data pay full cost.
+    This creates the geographic incentive (§6.5) without contradicting the
+    stake-for-bandwidth model.
+
+  KEY INSIGHT: Steps 1-4 require ZERO blockchain interaction.
+    The blockchain is used only for SETTLEMENT (step 6-8),
+    not for VERIFICATION (steps 2-4). BIA handles verification
+    using physics; blockchain handles settlement using consensus.
+</code></pre>
+
+<h3 id="134-bia-parameters-in-blockchain-governance">13.4 BIA Parameters in Blockchain Governance</h3>
+
+<p>Critical BIA parameters are stored on-chain and governed by SHELL-weighted voting:</p>
+
+<pre><code>Governable parameters:
+  - T½ values for each state type (ephemeral, operational, structural)
+  - Thymic tolerance duration (neonatal period length)
+  - NK audit probability (p_audit)
+  - Pheromone decay rate (λ)
+  - Quorum sensing thresholds (θ_low, θ_high, Δ)
+  - Module sandbox duration
+  - Anomaly classification σ thresholds
+
+Non-governable (hardcoded in protocol):
+  - Innate immunity rules (physical impossibility bounds)
+  - PUF-based identity binding
+  - Cryptographic primitives
+  - Physical consistency bound formula (Theorem 3.1)
+</code></pre>
+
+<hr />
+
+<h2 id="14-privacy-implications-of-bio-inspired-mechanisms">14. Privacy Implications of Bio-Inspired Mechanisms</h2>
+
+<h3 id="141-the-privacy-surface">14.1 The Privacy Surface</h3>
+
+<p>Bio-inspired mechanisms introduce novel privacy concerns beyond those of standard blockchain:</p>
+
+<table>
+<thead>
+<tr>
+  <th>Mechanism</th>
+  <th>Privacy Risk</th>
+  <th>Severity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><strong>Behavioral Fingerprint</strong></td>
+  <td>Profile reveals device type, usage patterns, location context</td>
+  <td>High</td>
+</tr>
+<tr>
+  <td><strong>Pheromone Field</strong></td>
+  <td>Aggregated traces reveal spatial activity density over time</td>
+  <td>Medium</td>
+</tr>
+<tr>
+  <td><strong>Immunological Memory</strong></td>
+  <td>Attack signatures may reveal deployment vulnerabilities</td>
+  <td>Medium</td>
+</tr>
+<tr>
+  <td><strong>Entropic Valuation</strong></td>
+  <td>Information value signals reveal what areas lack coverage</td>
+  <td>Low-Medium</td>
+</tr>
+<tr>
+  <td><strong>NK Random Audit</strong></td>
+  <td>Audit patterns reveal which devices are under suspicion</td>
+  <td>Low</td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="142-behavioral-fingerprint-privacy">14.2 Behavioral Fingerprint Privacy</h3>
+
+<p>The behavioral profile (Section 4.3) is maintained by <em>neighbors</em>, not by the device itself. This creates a distributed surveillance structure:</p>
+
+<pre><code>RISK: Neighbor N stores Profile(i) for device i:
+  - Activity patterns (when active → usage schedule)
+  - Communication patterns (who talks to whom → social graph)
+  - Energy signature (consumption → device type identification)
+  - Cross-correlation (which devices move together → ownership inference)
+
+MITIGATION:
+  1. Profile AGGREGATION: neighbors store statistical summaries (histograms),
+     not raw trace data. Individual readings are not recoverable.
+  2. Profile LOCALITY: profiles are stored only by k nearest neighbors (k ≈ 10),
+     not globally. No single entity holds all profiles.
+  3. Profile DECAY: profiles are refreshed from recent data; old profile data
+     is overwritten, not accumulated.
+  4. Profile ENCRYPTION: profiles are encrypted with the monitored device's
+     public key. Only the device (or its sponsor) can authorize profile disclosure.
+
+RESIDUAL RISK: A compromised neighbor can observe the behavioral profile
+  of all devices it monitors. For k = 10, compromising 1 neighbor exposes
+  ~1/10th of a device's profile. Compromising all k neighbors exposes the
+  full profile. This is analogous to the security-privacy tradeoff in any
+  neighborhood watch system.
+</code></pre>
+
+<h3 id="143-pheromone-field-privacy">14.3 Pheromone Field Privacy</h3>
+
+<p>The pheromone field (Section 3.3) aggregates traces from all devices in a locality. While individual traces are signed, the field as a whole reveals:</p>
+
+<ul>
+<li><strong>Activity density:</strong> High pheromone concentration = many active devices = busy area</li>
+<li><strong>Temporal patterns:</strong> Pheromone decay dynamics reveal when areas are active/inactive</li>
+<li><strong>Anomaly zones:</strong> Regions with frequent immune responses are identifiable</li>
+</ul>
+
+<p><strong>Mitigation:</strong> The KRILL blockchain's encrypted payload mechanism (companion whitepaper, Section 14) applies to pheromone traces: the <em>content</em> of traces is encrypted, but the <em>existence and timing</em> of traces is visible to local neighbors. Full metadata privacy would require techniques from anonymous communication (mix networks, onion routing), which are architecturally incompatible with low-latency stigmergic coordination.</p>
+
+<p><strong>Honest assessment:</strong> KRILL-BIA prioritizes security over privacy. The immune system <em>requires</em> behavioral observability to function. Complete privacy of device behavior would make anomaly detection impossible. This is a fundamental tradeoff, not a solvable engineering problem.</p>
+
+<h3 id="144-regulatory-compliance-considerations">14.4 Regulatory Compliance Considerations</h3>
+
+<p>KRILL-BIA operates in a rapidly evolving regulatory landscape. Key implications:</p>
+
+<p><strong>EU Cyber Resilience Act (CRA, 2024):</strong> The CRA requires that products with digital elements provide (a) security updates for the expected product lifetime, (b) vulnerability handling processes, and (c) a software bill of materials (SBOM). HGT (Section 8) poses a challenge: firmware modules propagate peer-to-peer without a central update server, making traditional SBOM tracking difficult.</p>
+
+<p><em>Mitigation:</em> Each HGT module carries a signed manifest (auditor signature, version, dependency list). The blockchain layer records module hashes on-chain (§13.3 step 7), creating an immutable audit trail. This provides a <em>distributed SBOM</em> — not a single document, but a verifiable on-chain record of what firmware each device runs. Whether regulators accept this as CRA-compliant is an open question.</p>
+
+<p><strong>GDPR (EU) / Data Protection:</strong> Behavioral fingerprints (§4.3) stored by neighbors constitute processing of device-related data. If devices are associated with natural persons (e.g., home IoT), this may constitute personal data processing. Metabolic decay (§5) is privacy-friendly: data self-destructs, aligning with data minimization principles. However, immunological memory (§4.6) retains attack signatures indefinitely, which may conflict with right-to-erasure.</p>
+
+<p><strong>NIST IoT Cybersecurity Framework:</strong> KRILL-BIA aligns well with NIST's principles of device identity (PUF), secure firmware update (HGT with sandbox), and anomaly detection (pentastratic immunity). The graduated response model maps naturally to NIST's identify-protect-detect-respond-recover framework.</p>
+
+<p><strong>Honest assessment:</strong> Regulatory compliance for decentralized, bio-inspired systems is uncharted territory. No existing regulation contemplates peer-to-peer firmware evolution or physics-based consensus. Early engagement with regulators — demonstrating that BIA's distributed mechanisms achieve equivalent or superior security outcomes compared to centralized approaches — will be necessary for commercial deployment.</p>
+
+<hr />
+
+<h2 id="15-bootstrapping-and-initial-network-formation">15. Bootstrapping and Initial Network Formation</h2>
+
+<h3 id="151-the-cold-start-problem">15.1 The Cold Start Problem</h3>
+
+<p>KRILL-BIA's mechanisms assume a populated network: stigmergic consensus requires neighbors, the immune system requires behavioral baselines, quorum sensing requires population density. What happens when the network starts from zero?</p>
+
+<h3 id="152-bootstrap-phases">15.2 Bootstrap Phases</h3>
+
+<pre><code>PHASE 0: GENESIS (1-10 devices)
+  Mode: SOLO (quorum sensing detects &lt; θ_low neighbors)
+  Consensus: NONE (no cross-verification possible)
+  Immune system: Innate only (Stratum 0: hardcoded bounds)
+  Data confidence: LOW (no corroboration)
+  State: All devices in extended neonatal period (building baselines)
+
+  NOTE: This phase is inherently insecure. Genesis devices must be
+  physically trusted (deployed by a known operator). This is analogous
+  to blockchain genesis blocks, which are hardcoded, not consensus-derived.
+
+PHASE 1: COLONY (10-50 devices)
+  Mode: QUORUM (3+ neighbors detected)
+  Consensus: Physical consistency checks begin
+  Immune system: Strata 0-1 active (innate + behavioral fingerprint)
+  Data confidence: MEDIUM
+  State: First neonatal periods complete; profiles freezing
+
+  CRITICAL TRANSITION: The first devices to complete neonatal period
+  become the "immune founders" — their profiles serve as the initial
+  baseline for the network's definition of "normal."
+
+PHASE 2: ORGANISM (50-500 devices)
+  Mode: SWARM for dense areas, QUORUM for sparse
+  Consensus: Full stigmergic consensus operational
+  Immune system: All strata active
+  Data confidence: HIGH (with geographic variation)
+  State: Morphogenetic topology begins self-organizing
+
+PHASE 3: ECOSYSTEM (500+ devices)
+  Mode: Mixed (varies by local density)
+  All mechanisms fully operational
+  Horizontal gene transfer begins (sufficient module diversity)
+  Entropic valuation provides meaningful geographic incentives
+</code></pre>
+
+<h3 id="153-seed-trust-and-the-founder-problem">15.3 Seed Trust and the Founder Problem</h3>
+
+<p>The "immune founders" — the first devices to complete neonatal period — define the network's initial conception of normal behavior. If these founders are compromised, the entire network's immune baseline is corrupted.</p>
+
+<p><strong>Mitigation:</strong></p>
+
+<ol>
+<li>Genesis devices should be physically verified, manufacturer-certified sensors with known specifications</li>
+<li>The neonatal period for genesis devices should be extended (30+ days vs. 14 days default)</li>
+<li>Multiple independent operators should contribute genesis devices (prevents single-party manipulation)</li>
+<li>A "re-calibration event" can be triggered by governance vote to reset all profiles after sufficient device count is reached</li>
+</ol>
+
+<hr />
+
+<h2 id="16-governance-of-bio-inspired-parameters">16. Governance of Bio-Inspired Parameters</h2>
+
+<h3 id="161-the-parameter-problem">16.1 The Parameter Problem</h3>
+
+<p>KRILL-BIA introduces dozens of parameters (T½ values, decay rates, thresholds, audit probabilities, tolerance durations). These parameters interact nonlinearly — changing the pheromone decay rate affects stigmergic consensus speed, which affects anomaly detection latency, which affects immune response time.</p>
+
+<h3 id="162-parameter-sensitivity-classes">16.2 Parameter Sensitivity Classes</h3>
+
+<table>
+<thead>
+<tr>
+  <th>Class</th>
+  <th>Parameters</th>
+  <th>Sensitivity</th>
+  <th>Governance Level</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><strong>Safety-critical</strong></td>
+  <td>Innate immunity bounds, PUF binding, crypto primitives</td>
+  <td>Extreme</td>
+  <td>Hardcoded (requires protocol upgrade)</td>
+</tr>
+<tr>
+  <td><strong>Ecosystem-critical</strong></td>
+  <td>T½ values, thymic duration, NK probability, anomaly σ thresholds</td>
+  <td>High</td>
+  <td>On-chain governance (SHELL vote, 30-day timelock)</td>
+</tr>
+<tr>
+  <td><strong>Deployment-specific</strong></td>
+  <td>Quorum sensing thresholds, pheromone decay rate, morphogenetic D_A/D_I</td>
+  <td>Medium</td>
+  <td>Shard-level governance (local operator vote)</td>
+</tr>
+<tr>
+  <td><strong>Self-tuning</strong></td>
+  <td>Module fitness weights, entropic valuation scaling, hysteresis band width</td>
+  <td>Low</td>
+  <td>Adaptive (algorithm adjusts based on network metrics)</td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="163-adaptive-parameter-tuning">16.3 Adaptive Parameter Tuning</h3>
+
+<p>For parameters in the "self-tuning" class, KRILL-BIA employs a feedback mechanism inspired by <strong>homeostasis</strong> — the biological process by which organisms maintain internal stability:</p>
+
+<pre><code>HOMEOSTATIC LOOP:
+  1. MEASURE: network-wide metrics (anomaly rate, false positive rate,
+     consensus latency, energy consumption)
+  2. COMPARE: against target ranges (e.g., FP rate &lt; 0.1%, anomaly
+     detection latency &lt; 5 epochs)
+  3. ADJUST: parameters that are outside target range
+     - Adjustment magnitude ∝ deviation from target
+     - Adjustment rate limited (max 5% change per epoch)
+     - Direction: negative feedback (if FP rate too high → widen σ thresholds)
+  4. OBSERVE: measure again after adjustment
+  5. REPEAT
+
+STABILITY GUARANTEE: Negative feedback + rate limiting + hysteresis
+  ensures the system converges to target range and does not oscillate.
+  This is a standard result from control theory (proportional control
+  with rate limiting is BIBO-stable for monotonic response functions).
+</code></pre>
+
+<hr />
+
+<h2 id="17-physical-unclonable-function-puf-identity-formal-treatment">17. Physical Unclonable Function (PUF) Identity: Formal Treatment</h2>
+
+<h3 id="171-definition">17.1 Definition</h3>
+
+<p><strong>Definition 17.1 (Physical Unclonable Function).</strong> A PUF is a physical device that maps a challenge c to a response r through a function determined by uncontrollable manufacturing variations:</p>
+
+<pre><code>r = PUF(c)
+</code></pre>
+
+<p>such that:</p>
+
+<ol>
+<li><strong>Uniqueness:</strong> For two physically distinct PUFs P₁ and P₂, P₁(c) ≠ P₂(c) with overwhelming probability</li>
+<li><strong>Reproducibility:</strong> For the same PUF P, P(c) ≈ P(c) across repeated evaluations (within noise margin δ)</li>
+<li><strong>Unclonability:</strong> Given oracle access to P, no efficient adversary can construct P' such that P'(c) ≈ P(c) for unseen challenges c</li>
+</ol>
+
+<h3 id="172-sram-puf-for-iot-devices">17.2 SRAM PUF for IoT Devices</h3>
+
+<p>KRILL-BIA employs SRAM PUFs (Guajardo et al., 2007; Holcomb, Burleson &amp; Fu, 2009), which exploit the fact that SRAM cells power up to random but device-specific states determined by transistor mismatch:</p>
+
+<pre><code>PUF response extraction:
+  1. Power-cycle the SRAM block (specific address range reserved for PUF)
+  2. Read power-on values: raw_response = SRAM[addr_start..addr_end]
+  3. Apply fuzzy extractor (error correction):
+     stable_response = FuzzyExtract(raw_response, helper_data)
+  4. Derive identity key: device_key = KDF(stable_response)
+
+Properties:
+  - No key stored in non-volatile memory (derived fresh from physics)
+  - Cannot be extracted by reading flash/EEPROM
+  - Requires physical access to the specific SRAM die to reproduce
+  - Cost: zero additional hardware (uses existing SRAM)
+  - Limitation: requires dedicated SRAM block (2-8 KB typical)
+</code></pre>
+
+<h3 id="173-puf-bound-identity-in-krill-bia">17.3 PUF-Bound Identity in KRILL-BIA</h3>
+
+<pre><code>Device identity = hash(PUF_response || device_type || deployment_id)
+
+Implications:
+  - Identity is BOUND to physical hardware (not a key file that can be copied)
+  - Sybil attack requires manufacturing physical devices (cost: $1-5 per identity)
+  - Device replacement = new identity (hardware PUF response changes)
+  - PUF response changes if device is physically tampered with (die modification)
+    → tampering = automatic identity invalidation → detection
+
+Limitation: PUF responses have ~5-15% bit error rate across environmental conditions
+  (temperature, voltage variation). Fuzzy extractors correct this but require
+  ~2x the raw entropy for reliable key derivation.
+
+Limitation: Not all IoT MCUs have sufficient SRAM for reliable PUF extraction.
+  ATtiny (512 bytes SRAM) is insufficient. ESP32 (520KB SRAM) is ample.
+  Minimum practical: ~2KB SRAM for PUF.
+</code></pre>
+
+<hr />
+
+<h2 id="18-computational-overhead-analysis-on-constrained-hardware">18. Computational Overhead Analysis on Constrained Hardware</h2>
+
+<h3 id="181-resource-budget-per-tier">18.1 Resource Budget per Tier</h3>
+
+<table>
+<thead>
+<tr>
+  <th>Mechanism</th>
+  <th>Dust (32KB RAM)</th>
+  <th>Nano (256KB RAM)</th>
+  <th>Full (1GB RAM)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><strong>Innate Immunity</strong></td>
+  <td>200 bytes code, O(1) per reading</td>
+  <td>Same</td>
+  <td>Same</td>
+</tr>
+<tr>
+  <td><strong>Behavioral Fingerprint</strong></td>
+  <td>Not run (monitored by others)</td>
+  <td>5KB per monitored device × k</td>
+  <td>Same</td>
+</tr>
+<tr>
+  <td><strong>Adaptive Immunity</strong></td>
+  <td>Not run</td>
+  <td>2KB working memory</td>
+  <td>Same</td>
+</tr>
+<tr>
+  <td><strong>Thymic Tolerance</strong></td>
+  <td>Not run</td>
+  <td>8KB per neonatal device</td>
+  <td>Same</td>
+</tr>
+<tr>
+  <td><strong>NK Random Audit</strong></td>
+  <td>Not run</td>
+  <td>Not run</td>
+  <td>16KB per audit</td>
+</tr>
+<tr>
+  <td><strong>Immunological Memory</strong></td>
+  <td>Not run</td>
+  <td>1KB per memory cell</td>
+  <td>Unlimited</td>
+</tr>
+<tr>
+  <td><strong>Quorum Sensing</strong></td>
+  <td>16 bytes (counter + mode)</td>
+  <td>64 bytes (aggregation)</td>
+  <td>Same</td>
+</tr>
+<tr>
+  <td><strong>Entropic Valuation</strong></td>
+  <td>Not run</td>
+  <td>Not run</td>
+  <td>4KB per evaluation</td>
+</tr>
+<tr>
+  <td><strong>Pheromone Field</strong></td>
+  <td>128 bytes (own trace)</td>
+  <td>4KB (local field cache)</td>
+  <td>64KB (full field)</td>
+</tr>
+<tr>
+  <td><strong>Morphogenetic Signals</strong></td>
+  <td>32 bytes (A, I values)</td>
+  <td>256 bytes (neighbor field)</td>
+  <td>4KB (computation)</td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="182-dust-node-budget-verification">18.2 Dust Node Budget Verification</h3>
+
+<pre><code>Total BIA overhead on Dust node:
+  Innate immunity rules:    200 bytes code + 0 bytes state
+  Quorum sensing:            50 bytes code + 16 bytes state
+  Pheromone trace deposit:  100 bytes code + 128 bytes state
+  Morphogenetic sensing:     80 bytes code + 32 bytes state
+  ─────────────────────────────────────────────────
+  TOTAL:                    430 bytes code + 176 bytes state ≈ 606 bytes
+
+Available on 32KB RAM device after OS + crypto + network stack:
+  ~8-12 KB free for application + BIA
+
+Verdict: BIA fits comfortably. Even on 32KB devices, BIA consumes &lt; 5% of
+  available RAM. The immune system's heavy lifting runs on Nano/Full nodes,
+  not on Dust.
+</code></pre>
+
+<h3 id="183-nano-node-budget-verification">18.3 Nano Node Budget Verification</h3>
+
+<pre><code>Nano monitoring 100 Dust nodes:
+  Behavioral profiles: 100 × 500 bytes = 50 KB (stored in flash, cached in RAM)
+  Active anomaly detection: 2 KB working memory (processes one device at a time)
+  Local pheromone field: 4 KB
+  Quorum sensing: 64 bytes
+  ─────────────────────────────────────────────────
+  RAM peak: ~56 KB + working buffers ≈ 64 KB
+
+Available on 256KB RAM device:
+  ~128 KB free after OS + network + crypto
+
+Verdict: Fits with 50% headroom. Monitoring 100 devices is feasible.
+  Monitoring 1,000 devices would require ~500 KB flash for profiles,
+  which is feasible with 1MB flash but RAM-constrained for active processing.
+</code></pre>
+
+<hr />
+
+<h2 id="19-novelty-assessment-and-literature-positioning">19. Novelty Assessment and Literature Positioning</h2>
+
+<h3 id="191-systematic-novelty-evaluation">19.1 Systematic Novelty Evaluation</h3>
+
+<table>
+<thead>
+<tr>
+  <th>Concept</th>
+  <th>Exists Independently?</th>
+  <th>Applied to IoT/Blockchain?</th>
+  <th>Novelty Level</th>
+  <th>Key Differentiator</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Physical world as consensus layer</td>
+  <td>No (implicit in sensor fusion)</td>
+  <td><strong>NO</strong></td>
+  <td><strong>Breakthrough</strong></td>
+  <td>Eliminates consensus for physics-grounded data</td>
+</tr>
+<tr>
+  <td>Stigmergy for distributed coordination</td>
+  <td>Yes (swarm robotics: Dorigo et al., 2000)</td>
+  <td><strong>NO</strong> for consensus replacement</td>
+  <td><strong>Very High</strong></td>
+  <td>Pheromone field with physical constraints</td>
+</tr>
+<tr>
+  <td>Multi-layer AIS with tolerance</td>
+  <td>Yes (AIS: Forrest et al., 1994; de Castro, 2002)</td>
+  <td><strong>NO</strong> with autoimmune protection</td>
+  <td><strong>High</strong></td>
+  <td>Thymic tolerance training + NK random audit</td>
+</tr>
+<tr>
+  <td>Metabolic state with T½</td>
+  <td>TTL exists in DNS, caching</td>
+  <td><strong>NO</strong> as thermodynamic model</td>
+  <td><strong>High</strong></td>
+  <td>Four-tier taxonomy + apoptosis</td>
+</tr>
+<tr>
+  <td>Apoptosis of state/devices</td>
+  <td><strong>NO</strong></td>
+  <td><strong>NO</strong></td>
+  <td><strong>Very High</strong></td>
+  <td>Programmed self-destruction for system health</td>
+</tr>
+<tr>
+  <td>Entropic data valuation (CMI)</td>
+  <td>Information theory (Shannon, 1948; Cover &amp; Thomas, 2006)</td>
+  <td><strong>NO</strong> as incentive mechanism</td>
+  <td><strong>High</strong></td>
+  <td>Closed loop with immune system</td>
+</tr>
+<tr>
+  <td>Quorum sensing without voting</td>
+  <td>Yes (biology: Fuqua et al., 1994)</td>
+  <td><strong>NO</strong> for distributed systems mode selection</td>
+  <td><strong>Very High</strong></td>
+  <td>Hysteretic leaderless transitions</td>
+</tr>
+<tr>
+  <td>Horizontal gene transfer for firmware</td>
+  <td><strong>NO</strong></td>
+  <td><strong>NO</strong></td>
+  <td><strong>Breakthrough</strong></td>
+  <td>Natural selection of software modules</td>
+</tr>
+<tr>
+  <td>Reaction-diffusion network topology</td>
+  <td><strong>NO</strong> (in networks)</td>
+  <td><strong>NO</strong></td>
+  <td><strong>Breakthrough</strong></td>
+  <td>Turing patterns for self-organizing topology</td>
+</tr>
+<tr>
+  <td>Biological time with adaptive epochs</td>
+  <td>Lamport clocks (1978)</td>
+  <td><strong>NO</strong> with metabolic coupling</td>
+  <td><strong>High</strong></td>
+  <td>Epochs tied to network metabolic rate</td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="192-publication-potential">19.2 Publication Potential</h3>
+
+<p>Based on the novelty assessment, the following independent research contributions are identified:</p>
+
+<p><strong>Paper 1 (Flagship — Systems):</strong> "Stigmergic Consensus: Replacing Byzantine Agreement with Physical Ground Truth for IoT Networks"</p>
+
+<ul>
+<li>Venue target: ACM SIGCOMM, USENIX NSDI, or IEEE S&amp;P</li>
+<li>Core contribution: Theorem 3.1, Protocol 3.4, Energy analysis (Section 11)</li>
+</ul>
+
+<p><strong>Paper 2 (Security — Immunology):</strong> "A Pentastratic Artificial Immune System for Distributed IoT Anomaly Detection with Autoimmune Tolerance"</p>
+
+<ul>
+<li>Venue target: ACM CCS, USENIX Security, or IEEE TDSC</li>
+<li>Core contribution: Five-layer architecture, thymic tolerance, NK random audit</li>
+</ul>
+
+<p><strong>Paper 3 (Novel — Morphogenesis):</strong> "Reaction-Diffusion Network Topology: Self-Organizing IoT Networks via Turing Patterns"</p>
+
+<ul>
+<li>Venue target: Nature Communications, PNAS, or ACM MobiCom</li>
+<li>Core contribution: Application of Turing (1952) to network architecture</li>
+</ul>
+
+<p><strong>Paper 4 (Novel — Firmware Evolution):</strong> "Horizontal Gene Transfer for Decentralized Firmware: Natural Selection of IoT Software Modules"</p>
+
+<ul>
+<li>Venue target: ACM SOSP, USENIX OSDI, or IEEE IoT Journal</li>
+<li>Core contribution: Module fitness, natural selection dynamics, viral defense</li>
+</ul>
+
+<p><strong>Whitepaper (Integrated):</strong> This document, presenting the complete framework.</p>
+
+<h3 id="193-relationship-to-existing-literature">19.3 Relationship to Existing Literature</h3>
+
+<p><strong>Swarm Intelligence (Bonabeau, Dorigo &amp; Theraulaz, 1999):</strong> KRILL-BIA builds on swarm intelligence principles but extends them beyond optimization (ant colony optimization, particle swarm optimization) to consensus and security — domains where swarm intelligence has not been systematically applied.</p>
+
+<p><strong>Artificial Immune Systems (de Castro &amp; Timmis, 2002):</strong> The AIS field has explored negative selection, clonal selection, and danger theory. KRILL-BIA's contribution is the integration of autoimmune tolerance (thymic selection) and NK-cell random auditing into a practical distributed system — addressing the autoimmune problem that existing AIS implementations ignore.</p>
+
+<p><strong>Information-Theoretic Approaches (Cover &amp; Thomas, 2006):</strong> The use of mutual information for sensor data valuation builds on classical information theory but applies conditional mutual information as an economic primitive — a novel application domain.</p>
+
+<p><strong>Reaction-Diffusion Systems (Murray, 2003):</strong> Turing's reaction-diffusion equations have been applied to pattern formation in biology, chemistry, and materials science. Their application to network topology is genuinely new.</p>
+
+<p><strong>Programmed Cell Death in Computing:</strong> To our knowledge, no prior work has proposed computational apoptosis as a state management mechanism for distributed systems. The closest analog is garbage collection, which is passive (reclaims unreferenced memory) rather than active (state decides to destroy itself).</p>
+
+<hr />
+
+<h2 id="20-conclusion-and-research-agenda">20. Conclusion and Research Agenda</h2>
+
+<h3 id="201-summary">20.1 Summary</h3>
+
+<p>This paper has presented KRILL-BIA, a bio-inspired architectural framework for IoT distributed systems that replaces blockchain's ledger metaphor with an organismic metaphor. The nine interlocking subsystems — stigmergic consensus, pentastratic immunity, metabolic state, entropic valuation, quorum sensing, horizontal gene transfer, morphogenetic topology, thymic tolerance, and immunological memory — form a coherent system where each mechanism addresses a specific failure mode of existing approaches.</p>
+
+<p>Three key results stand out:</p>
+
+<ol>
+<li><p><strong>Stigmergic consensus eliminates Byzantine agreement for the vast majority of IoT interactions involving continuous physical quantities</strong>, reducing energy cost by 10³-10⁷× compared to BFT at comparable scale. The physical world serves as a free consensus layer — a resource that blockchain ignores entirely.</p></li>
+<li><p><strong>The immune system provides graduated, proportional, self-learning defense</strong> that avoids both the false simplicity of reputation scores and the false security of slashing conditions. Thymic tolerance prevents autoimmune network paralysis; NK random audits detect the cancer-like slow drift attack that evades all threshold-based detection.</p></li>
+<li><p><strong>Metabolic state with apoptosis solves the state bloat problem</strong> by making information decay a feature, not a bug. Networks that breathe — where old state dies and new state is born — are fundamentally more sustainable than networks that accumulate state monotonically.</p></li>
+</ol>
+
+<h3 id="202-research-agenda">20.2 Research Agenda</h3>
+
+<p>The following work is needed to bring KRILL-BIA from theoretical framework to deployed system:</p>
+
+<p><strong>Short-term (1-2 years):</strong></p>
+
+<ul>
+<li>Formal proof of Physical BFT security model</li>
+<li>Simulation of stigmergic consensus under adversarial conditions (10⁴-10⁶ nodes)</li>
+<li>Prototype implementation of pentastratic immune system on ESP32 hardware</li>
+<li>Experimental validation of reaction-diffusion topology on physical mesh network</li>
+</ul>
+
+<p><strong>Simulation Plan (Short-term Priority):</strong></p>
+
+<pre><code>SIMULATION 1: Stigmergic Consensus Validation
+  Framework: ns-3 (network simulator) + custom BIA module
+  Scale: 10,000 → 100,000 → 1,000,000 nodes (progressive)
+  Topology: Random geometric graph (nodes placed in 2D/3D space)
+  Adversary model: 
+    - Byzantine fraction f ∈ {0.05, 0.10, 0.20, 0.30, 0.35}
+    - Attack types: random values, physically plausible lies, slow drift, coordinated
+  Physical model: Temperature field with Gaussian noise, seasonal variation, 
+    localized anomalies (fire events), boundary discontinuities
+  Metrics:
+    - Detection rate (TPR) per adversary type
+    - False positive rate (FPR) per environmental condition
+    - Detection latency (epochs to first flag)
+    - Energy consumption per node vs. equivalent BFT shard
+    - Precision-recall curves for immune system
+  Baseline comparison: PBFT with equivalent shard size, IOTA Tangle
+  Success criteria: 
+    - TPR &gt; 0.95 for f ≤ 0.20
+    - FPR &lt; 0.01 under normal conditions
+    - Energy reduction ≥ 10³× vs PBFT at N = 100,000
+
+SIMULATION 2: Immune System Stress Test
+  Framework: Agent-based model (Mesa/Python or custom Rust)
+  Scale: 1,000 nodes (focus on immune dynamics, not network scale)
+  Scenarios:
+    a) Normal operation with seasonal variation → measure FP rate
+    b) Mass device replacement (30% neonatal) → measure detection gap
+    c) Cascading failure (pheromone poisoning + autoimmune) → measure cascade extent
+    d) Slow drift attack (0.1σ/day) → measure NK detection latency
+  Metrics: ROC curves, precision-recall by severity level, cascade propagation distance
+  Success criteria: Cascade bounded to &lt; 3 hops; NK detects drift within 150 epochs
+
+SIMULATION 3: Reaction-Diffusion Topology
+  Framework: PDE solver (FEniCS or custom finite-difference) on network graph
+  Scale: 500 → 5,000 nodes
+  Scenarios:
+    a) Uniform initial deployment → observe emergent pattern
+    b) Node failure (remove 10%, 20%, 30% of nodes) → measure recovery time
+    c) Congestion injection → measure load redistribution
+  Metrics: Coverage uniformity (Voronoi), convergence time, energy balance
+  Success criteria: Coverage gap repair within 10 epochs; steady state reached within 100 epoch
+s
+</code></pre>
+
+<p><strong>Medium-term (2-4 years):</strong></p>
+
+<ul>
+<li>Implementation of horizontal gene transfer on real IoT firmware</li>
+<li>Field trial with 1,000+ devices in controlled environment (smart building, factory)</li>
+<li>Formal verification of thymic tolerance FP rate bounds</li>
+<li>Integration with KRILL blockchain layer (Sections 3-9 of companion whitepaper)</li>
+</ul>
+
+<p><strong>Long-term (4+ years):</strong></p>
+
+<ul>
+<li>Deployment at scale (10⁵+ devices)</li>
+<li>Cross-modality stigmergy for heterogeneous sensor networks</li>
+<li>Post-quantum PUF identity research</li>
+<li>Evolutionary dynamics study: does module fitness converge? What prevents fitness collapse?</li>
+</ul>
+
+<h3 id="203-closing-remark">20.3 Closing Remark</h3>
+
+<p>The Internet of Things is not a ledger. It is an ecosystem. The tools we use to coordinate it should reflect this reality. Biology has been engineering distributed systems for 3.8 billion years. It would be hubris to ignore its solutions. It would be folly not to formalize and improve them.</p>
+
+<p>The goal is not a perfect system. The goal is a living one.</p>
+
+<hr />
+
+<h2 id="21-references">21. References</h2>
+
+<ol>
+<li>Bialek, W. (2012). <em>Biophysics: Searching for Principles.</em> Princeton University Press.</li>
+<li>Bianconi, E. et al. (2013). "An estimation of the number of cells in the human body." <em>Annals of Human Biology</em>, 40(6), 463-471.</li>
+<li>Bonabeau, E., Dorigo, M., &amp; Theraulaz, G. (1999). <em>Swarm Intelligence: From Natural to Artificial Systems.</em> Oxford University Press.</li>
+<li>Castro, M., &amp; Liskov, B. (1999). "Practical Byzantine Fault Tolerance." <em>Proceedings of the Third Symposium on Operating Systems Design and Implementation (OSDI).</em></li>
+<li>Cisco (2023). <em>Cisco Annual Internet Report (2018-2023).</em> Cisco Systems.</li>
+<li>Cover, T. M., &amp; Thomas, J. A. (2006). <em>Elements of Information Theory.</em> 2nd ed. Wiley-Interscience.</li>
+<li>de Castro, L. N., &amp; Timmis, J. (2002). <em>Artificial Immune Systems: A New Computational Intelligence Approach.</em> Springer.</li>
+<li>Dorigo, M., Bonabeau, E., &amp; Theraulaz, G. (2000). "Ant algorithms and stigmergy." <em>Future Generation Computer Systems</em>, 16(8), 851-871.</li>
+<li>Forrest, S., Perelson, A. S., Allen, L., &amp; Cherukuri, R. (1994). "Self-Nonself Discrimination in a Computer." <em>Proceedings of the 1994 IEEE Symposium on Security and Privacy</em>, 202-212.</li>
+<li>Fretwell, S. D., &amp; Lucas, H. L. (1969). "On territorial behavior and other factors influencing habitat distribution in birds." <em>Acta Biotheoretica</em>, 19(1), 16-36.</li>
+<li>Fuqua, W. C., Winans, S. C., &amp; Greenberg, E. P. (1994). "Quorum sensing in bacteria: the LuxR-LuxI family of cell density-responsive transcriptional regulators." <em>Journal of Bacteriology</em>, 176(2), 269-275.</li>
+<li>Grassé, P.-P. (1959). "La reconstruction du nid et les coordinations interindividuelles chez Bellicositermes natalensis et Cubitermes sp. La théorie de la stigmergie: Essai d'interprétation du comportement des termites constructeurs." <em>Insectes Sociaux</em>, 6(1), 41-80.</li>
+<li>Guajardo, J., Kumar, S. S., Schrijen, G.-J., &amp; Tuyls, P. (2007). "FPGA Intrinsic PUFs and Their Use for IP Protection." <em>Proceedings of CHES 2007</em>, LNCS 4727, 63-80.</li>
+<li>IDC (2023). <em>Worldwide Global DataSphere Forecast, 2023-2027.</em> International Data Corporation.</li>
+<li>Jacobson, D. L., Gange, S. J., Rose, N. R., &amp; Graham, N. M. H. (1997). "Epidemiology and estimated population burden of selected autoimmune diseases in the United States." <em>Clinical Immunology and Immunopathology</em>, 84(3), 223-243.</li>
+<li>Kerr, J. F. R., Wyllie, A. H., &amp; Currie, A. R. (1972). "Apoptosis: A basic biological phenomenon with wide-ranging implications in tissue kinetics." <em>British Journal of Cancer</em>, 26(4), 239-257.</li>
+<li>Klein, L., Kyewski, B., Allen, P. M., &amp; Hogquist, K. A. (2014). "Positive and negative selection of the T cell repertoire: what thymocytes see (and don't see)." <em>Nature Reviews Immunology</em>, 14(6), 377-391.</li>
+<li>Kondo, S., &amp; Miura, T. (2010). "Reaction-diffusion model as a framework for understanding biological pattern formation." <em>Science</em>, 329(5999), 1616-1620.</li>
+<li>Lamport, L. (1978). "Time, clocks, and the ordering of events in a distributed system." <em>Communications of the ACM</em>, 21(7), 558-565.</li>
+<li>Lamport, L., Shostak, R., &amp; Pease, M. (1982). "The Byzantine Generals Problem." <em>ACM Transactions on Programming Languages and Systems</em>, 4(3), 382-401.</li>
+<li>Landauer, R. (1961). "Irreversibility and heat generation in the computing process." <em>IBM Journal of Research and Development</em>, 5(3), 183-191.</li>
+<li>Laughlin, S. B. (2001). "Energy as a constraint on the coding and processing of sensory information." <em>Current Opinion in Neurobiology</em>, 11(4), 475-480.</li>
+<li>Lotka, A. J. (1925). <em>Elements of Physical Biology.</em> Williams &amp; Wilkins.</li>
+<li>McClelland, J. L., McNaughton, B. L., &amp; O'Reilly, R. C. (1995). "Why there are complementary learning systems in the hippocampus and neocortex." <em>Psychological Review</em>, 102(3), 419-457.</li>
+<li>Murray, J. D. (2003). <em>Mathematical Biology II: Spatial Models and Biomedical Applications.</em> 3rd ed. Springer.</li>
+<li>Nakamoto, S. (2008). <em>Bitcoin: A Peer-to-Peer Electronic Cash System.</em></li>
+<li>Ochman, H., Lawrence, J. G., &amp; Groisman, E. A. (2000). "Lateral gene transfer and the nature of bacterial innovation." <em>Nature</em>, 405(6784), 299-304.</li>
+<li>Shannon, C. E. (1948). "A Mathematical Theory of Communication." <em>Bell System Technical Journal</em>, 27(3), 379-423.</li>
+<li>Statista (2024). <em>Number of Internet of Things (IoT) connected devices worldwide from 2019 to 2030.</em></li>
+<li>Syvanen, M. (1985). "Cross-species gene transfer; implications for a new theory of evolution." <em>Journal of Theoretical Biology</em>, 112(2), 333-343.</li>
+<li>Turing, A. M. (1952). "The Chemical Basis of Morphogenesis." <em>Philosophical Transactions of the Royal Society of London. Series B, Biological Sciences</em>, 237(641), 37-72.</li>
+<li>Volterra, V. (1926). "Fluctuations in the abundance of a species considered mathematically." <em>Nature</em>, 118(2972), 558-560.</li>
+<li>Weiser, M. (1991). "The Computer for the 21st Century." <em>Scientific American</em>, 265(3), 94-104.</li>
+<li>Yin, M., Malkhi, D., Reiter, M. K., Gueta, G. G., &amp; Abraham, I. (2019). "HotStuff: BFT Consensus with Linearity and Responsiveness." <em>Proceedings of the 2019 ACM Symposium on Principles of Distributed Computing (PODC)</em>, 347-356.</li>
+<li>Etherscan (2025). <em>Ethereum Chain Data Size.</em> https://etherscan.io/chartsync/chaindefault</li>
+<li>Holcomb, D. E., Burleson, W. P., &amp; Fu, K. (2009). "Power-Up SRAM State as an Identifying Fingerprint and Source of True Random Numbers." <em>IEEE Transactions on Computers</em>, 58(9), 1198-1210.</li>
+<li>Axelsson, S. (2000). "The Base-Rate Fallacy and the Difficulty of Intrusion Detection." <em>ACM Transactions on Information and System Security</em>, 3(3), 186-205.</li>
+<li>Matzinger, P. (2002). "The Danger Model: A Renewed Sense of Self." <em>Science</em>, 296(5566), 301-305.</li>
+<li>Monderer, D., &amp; Shapley, L. S. (1996). "Potential Games." <em>Games and Economic Behavior</em>, 14(1), 124-143.</li>
+</ol>
+
+<hr />
+
+<h2 id="22-appendices">22. Appendices</h2>
+
+<h3 id="appendix-a-nomenclature-of-novel-concepts">Appendix A: Nomenclature of Novel Concepts</h3>
+
+<table>
+<thead>
+<tr>
+  <th>KRILL-BIA Term</th>
+  <th>Full Name</th>
+  <th>Origin</th>
+  <th>First Proposed</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><strong>Stigmergic Consensus</strong></td>
+  <td>Physical-world-grounded indirect coordination</td>
+  <td>Grassé (1959) + novel application</td>
+  <td>This paper</td>
+</tr>
+<tr>
+  <td><strong>Pentastratic Immunity</strong></td>
+  <td>Five-layered artificial immune system</td>
+  <td>de Castro (2002) + novel extensions</td>
+  <td>This paper</td>
+</tr>
+<tr>
+  <td><strong>Metabolic State</strong></td>
+  <td>Thermodynamically-decaying distributed state</td>
+  <td>Landauer (1961) + novel application</td>
+  <td>This paper</td>
+</tr>
+<tr>
+  <td><strong>Pheromone Field</strong></td>
+  <td>DAG-based indirect communication medium</td>
+  <td>Dorigo (2000) + novel formalization</td>
+  <td>This paper</td>
+</tr>
+<tr>
+  <td><strong>Thymic Tolerance</strong></td>
+  <td>Self/non-self calibration period for new devices</td>
+  <td>Klein (2014) + novel application</td>
+  <td>This paper</td>
+</tr>
+<tr>
+  <td><strong>NK Random Audit</strong></td>
+  <td>Stochastic integrity verification against immutable baseline</td>
+  <td>Immunology + novel application</td>
+  <td>This paper</td>
+</tr>
+<tr>
+  <td><strong>Data Apoptosis</strong></td>
+  <td>Active self-destruction of contradicted data</td>
+  <td>Kerr (1972) + novel application</td>
+  <td>This paper</td>
+</tr>
+<tr>
+  <td><strong>Device Apoptosis</strong></td>
+  <td>Self-initiated identity reset upon compromise detection</td>
+  <td>Kerr (1972) + novel application</td>
+  <td>This paper</td>
+</tr>
+<tr>
+  <td><strong>State Apoptosis</strong></td>
+  <td>Smart contract self-termination upon inconsistency</td>
+  <td>Kerr (1972) + novel application</td>
+  <td>This paper</td>
+</tr>
+<tr>
+  <td><strong>Entropic Valuation</strong></td>
+  <td>CMI-based autonomous data pricing</td>
+  <td>Shannon (1948) + Cover (2006) + novel</td>
+  <td>This paper</td>
+</tr>
+<tr>
+  <td><strong>Quorum Sensing Mode</strong></td>
+  <td>Density-dependent operational mode selection</td>
+  <td>Fuqua (1994) + novel application</td>
+  <td>This paper</td>
+</tr>
+<tr>
+  <td><strong>Horizontal Module Transfer</strong></td>
+  <td>Peer-to-peer firmware module propagation</td>
+  <td>Ochman (2000) + novel application</td>
+  <td>This paper</td>
+</tr>
+<tr>
+  <td><strong>Module Fitness</strong></td>
+  <td>Natural-selection-based firmware quality metric</td>
+  <td>Darwinian selection + novel application</td>
+  <td>This paper</td>
+</tr>
+<tr>
+  <td><strong>Morphogenetic Topology</strong></td>
+  <td>Reaction-diffusion self-organizing network structure</td>
+  <td>Turing (1952) + novel application</td>
+  <td>This paper</td>
+</tr>
+<tr>
+  <td><strong>Physical Consistency Bound</strong></td>
+  <td>Maximum permissible sensor disagreement from physics</td>
+  <td>Novel formalization</td>
+  <td>This paper</td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="appendix-b-physical-consistency-bounds-for-common-iot-quantities">Appendix B: Physical Consistency Bounds for Common IoT Quantities</h3>
+
+<table>
+<thead>
+<tr>
+  <th>Physical Quantity</th>
+  <th>Spatial Gradient Bound</th>
+  <th>Temporal Rate Bound</th>
+  <th>Sensor Uncertainty (typical)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Temperature (indoor)</td>
+  <td>≤ 5°C/m (near heat source); ≤ 0.5°C/m (ambient)</td>
+  <td>≤ 2°C/min (HVAC); ≤ 50°C/min (fire)</td>
+  <td>± 0.5°C (DHT22); ± 0.1°C (SHT31)</td>
+</tr>
+<tr>
+  <td>Humidity (indoor)</td>
+  <td>≤ 10% RH/m</td>
+  <td>≤ 5% RH/min</td>
+  <td>± 2% RH (typical)</td>
+</tr>
+<tr>
+  <td>Atmospheric Pressure</td>
+  <td>≤ 0.01 hPa/m (altitude dependent)</td>
+  <td>≤ 1 hPa/hour (weather)</td>
+  <td>± 0.1 hPa (BMP280)</td>
+</tr>
+<tr>
+  <td>Light Intensity</td>
+  <td>Highly variable (shadows)</td>
+  <td>≤ 100,000 lux/s (light switch)</td>
+  <td>± 10% (photodiode)</td>
+</tr>
+<tr>
+  <td>Acceleration</td>
+  <td>N/A (point measurement)</td>
+  <td>≤ 1000 g/s (mechanical)</td>
+  <td>± 0.01 g (MPU6050)</td>
+</tr>
+<tr>
+  <td>CO₂ Concentration</td>
+  <td>≤ 100 ppm/m (indoor)</td>
+  <td>≤ 50 ppm/min (ventilation change)</td>
+  <td>± 30 ppm (SCD30)</td>
+</tr>
+<tr>
+  <td>Soil Moisture</td>
+  <td>≤ 5%/m (heterogeneous soil)</td>
+  <td>≤ 1%/hour (irrigation)</td>
+  <td>± 3% (capacitive)</td>
+</tr>
+<tr>
+  <td>Vibration (acceleration RMS)</td>
+  <td>Site-dependent (distance from source)</td>
+  <td>≤ 10 g/s (machinery start/stop)</td>
+  <td>± 0.05 g (MEMS accelerometer)</td>
+</tr>
+<tr>
+  <td>Voltage (AC mains)</td>
+  <td>N/A (point measurement)</td>
+  <td>≤ 10 V/cycle (grid fluctuation)</td>
+  <td>± 0.5 V (ADE7953)</td>
+</tr>
+<tr>
+  <td>Current (load monitoring)</td>
+  <td>N/A (point measurement)</td>
+  <td>≤ 100 A/s (motor startup)</td>
+  <td>± 0.1 A (CT clamp)</td>
+</tr>
+<tr>
+  <td>Sound Level (dBA)</td>
+  <td>≤ 20 dBA/m (indoor, inverse square)</td>
+  <td>≤ 40 dBA/s (door slam, alarm)</td>
+  <td>± 1.5 dBA (MEMS microphone)</td>
+</tr>
+<tr>
+  <td>PM2.5 (air quality)</td>
+  <td>≤ 50 μg/m³/m (near source)</td>
+  <td>≤ 100 μg/m³/min (cooking, fire)</td>
+  <td>± 10 μg/m³ (PMS5003)</td>
+</tr>
+<tr>
+  <td>Water Flow Rate</td>
+  <td>N/A (point measurement)</td>
+  <td>≤ 50 L/min/s (valve open/close)</td>
+  <td>± 2% (turbine meter)</td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="appendix-c-comparison-of-consensus-mechanisms">Appendix C: Comparison of Consensus Mechanisms</h3>
+
+<table>
+<thead>
+<tr>
+  <th>Property</th>
+  <th>PBFT (Castro, 1999)</th>
+  <th>HotStuff (Yin, 2019)</th>
+  <th>DAG-based (IOTA)</th>
+  <th><strong>Stigmergic (This Paper)</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Message complexity per round</td>
+  <td>O(n²)</td>
+  <td>O(n)</td>
+  <td>O(n) amortized</td>
+  <td><strong>O(k) per device</strong></td>
+</tr>
+<tr>
+  <td>Leader required</td>
+  <td>Yes</td>
+  <td>Yes</td>
+  <td>No (Coordinator)</td>
+  <td><strong>No</strong></td>
+</tr>
+<tr>
+  <td>Global state required</td>
+  <td>Yes</td>
+  <td>Yes</td>
+  <td>Yes (milestones)</td>
+  <td><strong>No</strong></td>
+</tr>
+<tr>
+  <td>Physical grounding</td>
+  <td>No</td>
+  <td>No</td>
+  <td>No</td>
+  <td><strong>Yes</strong></td>
+</tr>
+<tr>
+  <td>Energy at 10⁹ devices</td>
+  <td>Infeasible</td>
+  <td>Infeasible (per shard OK)</td>
+  <td>High</td>
+  <td><strong>Feasible</strong></td>
+</tr>
+<tr>
+  <td>Handles physics natively</td>
+  <td>No</td>
+  <td>No</td>
+  <td>No</td>
+  <td><strong>Yes</strong></td>
+</tr>
+<tr>
+  <td>Fault tolerance model</td>
+  <td>f &lt; n/3 Byzantine</td>
+  <td>f &lt; n/3 Byzantine</td>
+  <td>Coordinator trust</td>
+  <td><strong>f &lt; n/3 + physical consistency</strong></td>
+</tr>
+</tbody>
+</table>
+
+<p><strong>IOTA/Tangle Detailed Comparison:</strong></p>
+
+<p>IOTA is the closest existing system to KRILL-BIA in design intent (IoT-focused, DAG-based, feeless). Key differences:</p>
+
+<ol>
+<li><strong>Consensus basis.</strong> IOTA uses tip selection algorithms (weighted random walk on the DAG) for probabilistic consensus. KRILL uses physical consistency — readings are validated against physics, not against graph structure. IOTA's consensus is purely computational; KRILL's is grounded in physical reality.</li>
+<li><strong>Coordinator dependency.</strong> IOTA historically relied on a centralized Coordinator for finality (removed in IOTA 2.0/Shimmer with Approval Weight). KRILL has no coordinator at any layer — finality emerges from physical consistency + pheromone convergence.</li>
+<li><strong>Data semantics.</strong> IOTA treats all transactions as opaque data. KRILL understands data <em>physically</em> — it knows that a temperature reading has spatial and temporal constraints that can be verified. This semantic awareness enables stigmergic consensus, which IOTA cannot replicate.</li>
+<li><strong>Security model.</strong> IOTA's security scales with transaction throughput (more honest transactions → harder to attack). KRILL's security scales with physical density (more honest sensors → harder to lie about physics). KRILL's model is stronger for IoT because physical presence is harder to fake than transaction volume.</li>
+<li><strong>State management.</strong> IOTA accumulates state (pruning is optional). KRILL's metabolic decay actively destroys stale state — a fundamental architectural difference.</li>
+</ol>
+
+<h3 id="appendix-d-formal-definitions">Appendix D: Formal Definitions</h3>
+
+<p><strong>Definition D.1 (Immunological Weight).</strong> The immunological weight of device i at time t is:</p>
+
+<pre><code>w(i, t) = w_base(i) · credibility(i, t) · (1 - quarantine(i, t))
+</code></pre>
+
+<p>where:</p>
+
+<ul>
+<li>w_base(i) ∈ {0.3, 0.8, 1.0} (neonatal, normal, veteran)</li>
+<li>credibility(i, t) = f(history of anomaly events) ∈ [0, 1]</li>
+<li>quarantine(i, t) ∈ {0, 1} (1 if currently isolated)</li>
+</ul>
+
+<p><strong>Definition D.2 (Pheromone Field Entropy).</strong> The entropy of the local pheromone field at position x is:</p>
+
+<pre><code>H_field(x, t) = - Σᵢ p_i(x, t) · log₂(p_i(x, t))
+</code></pre>
+
+<p>where p_i(x, t) = P_i(x, t) / Σⱼ P_j(x, t) is the normalized pheromone contribution of device i.</p>
+
+<p>High field entropy indicates diverse, uncertain information. Low field entropy indicates consistent, high-confidence information.</p>
+
+<p><strong>Definition D.3 (Module Fitness).</strong> The fitness of firmware module M after deployment to n devices is:</p>
+
+<pre><code>fitness(M) = (Σᵢ performance_delta(i, M)) / n
+</code></pre>
+
+<p>where performance_delta(i, M) ∈ [-1, +1] represents the normalized performance change observed by device i after installing module M. Positive = improvement, negative = degradation.</p>
+
+<hr />
+
+<p><em>This document is a research contribution of the KRILL Project. It presents theoretical foundations and architectural proposals. Implementation, experimental validation, and formal proofs are ongoing work. Where claims are unproven, we say so. Where risks are high, we say so. We believe this honesty is the foundation of credible science.</em></p>
+
+<hr />
+
+<h2 id="supporting-this-work">Supporting This Work</h2>
+
+<p>KRILL is an open research project. The architecture, specifications, and all future reference implementations are released under permissive licenses (CC BY-SA 4.0 for documents, MIT for code) — free for anyone to use, modify, and build upon.</p>
+
+<p>If you find this work valuable — whether you use it in research, build a product on top of it, or simply believe decentralized IoT trust deserves a non-blockchain alternative — consider supporting continued development:</p>
+
+<p><strong>Ethereum / ERC-20 / Base / Arbitrum / Polygon:</strong></p>
+
+<pre><code>0x0BC290355c0B16B5B247701B7BC9AB2E1e61ffa7
+</code></pre>
+
+<p><strong>What your support funds:</strong></p>
+
+<ul>
+<li>Reference implementation on ESP32 and nRF52 hardware</li>
+<li>Formal verification of the consensus protocol</li>
+<li>Security audits of the cryptographic enrollment subsystem</li>
+<li>Open test infrastructure for community contributors</li>
+</ul>
+
+<p>Alternatively — or additionally — contribute code, file issues, or share this paper. Every form of support matters.</p>
+
+<p><em>Licensed under CC BY-SA 4.0.</em></p>
+
+
+    <div class="doc-footer">
+        <p>KRILL Bio-Inspired Architecture &mdash; February 2026</p>
+        <p>This document is released for public review and implementation.</p>
+    </div>
+</body>
+</html>
